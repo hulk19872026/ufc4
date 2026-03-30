@@ -885,23 +885,51 @@ function recordResult(fi,mW,mL,mPct,correct,a,b,wm){
 }
 
 // ── LOAD FIGHT ──────────────────────────────────────
-function loadFight(idx,targetId){
-  var i=parseInt(idx); var f=FIGHTS[i]; if(!f)return;
-  var tid=targetId||'fightDisplay';
-  var container=document.getElementById(tid); if(!container)return;
+function loadFight(idx, targetId){
+  try {
+    var i = parseInt(idx);
+    var f = FIGHTS[i];
+    if(!f){ console.error('loadFight: no fight at index', i); return; }
 
-  // venue banner
-  var vb=document.getElementById(tid==='liveContent'?'liveVenueBanner':'venueBanner');
-  if(vb)vb.innerHTML='<div class="venue-banner">'
-    +'<span class="venue-item"><strong>Venue:</strong> '+VENUE.name+', '+VENUE.city+'</span>'
-    +'<span class="venue-item"><strong>Altitude:</strong> '+VENUE.altitude+'ft — Sea level, no fatigue factor</span>'
-    +'<span class="venue-item"><strong>Octagon:</strong> '+VENUE.octagon+'</span>'
-    +'<span class="venue-item"><strong>Temp:</strong> ~'+VENUE.tempF+'°F · Indoor</span>'
-    +'</div>';
+    var tid = targetId || 'fightDisplay';
+    var container = document.getElementById(tid);
+    if(!container){ console.error('loadFight: container not found', tid); return; }
 
-  container.innerHTML=renderComp(f.a,f.b,f.wm,f.label,f.odds,i);
-  bindListeners(i,f.a,f.b,f.wm,calcProb(f.a,f.b));
-  container.scrollIntoView({behavior:'smooth',block:'start'});
+    // Venue banner
+    var vbId = (tid === 'liveContent') ? 'liveVenueBanner' : 'venueBanner';
+    var vb = document.getElementById(vbId);
+    if(vb){
+      vb.innerHTML = '<div class="venue-banner">'
+        + '<span class="venue-item"><strong>Venue:</strong> ' + VENUE.name + ', ' + VENUE.city + '</span>'
+        + '<span class="venue-item"><strong>Altitude:</strong> ' + VENUE.altitude + 'ft — Sea level</span>'
+        + '<span class="venue-item"><strong>Octagon:</strong> ' + VENUE.octagon + '</span>'
+        + '<span class="venue-item"><strong>Temp:</strong> ~' + VENUE.tempF + '°F · Indoor</span>'
+        + '</div>';
+    }
+
+    // Render comparison
+    var html = renderComp(f.a, f.b, f.wm, f.label, f.odds, i);
+    container.innerHTML = html;
+    bindListeners(i, f.a, f.b, f.wm, calcProb(f.a, f.b));
+
+    // Scroll to content (only if not already scrolled by caller)
+    if(!targetId || targetId === 'fightDisplay'){
+      setTimeout(function(){
+        container.scrollIntoView({behavior:'smooth', block:'start'});
+      }, 50);
+    }
+
+  } catch(err){
+    console.error('loadFight error:', err);
+    var container = document.getElementById(targetId || 'fightDisplay');
+    if(container){
+      container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--red);font-size:13px">'
+        + '<div style="font-size:24px;margin-bottom:8px">⚠️</div>'
+        + '<div style="font-weight:600;margin-bottom:4px">Error loading fight</div>'
+        + '<div style="color:var(--text3);font-size:11px">' + err.message + '</div>'
+        + '</div>';
+    }
+  }
 }
 
 // ── LIVE PANEL ──────────────────────────────────────
@@ -1048,7 +1076,12 @@ function buildLiveListFromESPN(d){
       div.addEventListener('click', function(){
         document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
         div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
-        loadFight(fightIdx,'liveContent');
+        var lc = document.getElementById('liveContent');
+        if(lc){
+          lc.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text3);font-size:13px">Loading stats…</div>';
+          lc.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+        setTimeout(function(){ loadFight(fightIdx,'liveContent'); }, 80);
       });
     }
 
@@ -1086,7 +1119,12 @@ function buildLiveListFromFIGHTS(){
     div.addEventListener('click',function(){
       document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
       div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
-      loadFight(i,'liveContent');
+      var lc = document.getElementById('liveContent');
+      if(lc){
+        lc.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text3);font-size:13px">Loading stats…</div>';
+        lc.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      setTimeout(function(){ loadFight(i,'liveContent'); }, 80);
     });
     return div;
   }

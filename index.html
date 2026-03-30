@@ -1004,265 +1004,272 @@ function tierBadge(t){
 }
 
 function renderComp(a,b,wm,label,odds,fightIdx){
-  const prob=calcProb(a,b);
-  const wName=prob[0]>=prob[1]?a.name.split(' ')[0]:b.name.split(' ')[0];
-  const wCol=prob[0]>=prob[1]?'var(--blue)':'var(--red)';
-  const finRateA=Math.round((a.ko+a.sub)/(a.ko+a.sub+a.dec)*100)||0;
-  const finRateB=Math.round((b.ko+b.sub)/(b.ko+b.sub+b.dec)*100)||0;
-  const fIdx=fightIdx!=null?fightIdx:'c';
-  const numRounds=fIdx==='c'?3:fIdx<2?5:3;
-  if(fIdx!=='c')initRounds(fIdx,numRounds);
+  const prob = calcProb(a,b);
+  const wName = prob[0]>=prob[1] ? a.name.split(' ')[0] : b.name.split(' ')[0];
+  const wCol  = prob[0]>=prob[1] ? 'var(--blue)' : 'var(--red)';
+  const finRateA = Math.round((a.ko+a.sub)/(a.ko+a.sub+a.dec)*100)||0;
+  const finRateB = Math.round((b.ko+b.sub)/(b.ko+b.sub+b.dec)*100)||0;
+  const fIdx = fightIdx!=null ? fightIdx : 'c';
+  const numRounds = (fIdx==='c') ? 3 : (fIdx<2 ? 5 : 3);
+  if(fIdx!=='c') initRounds(fIdx,numRounds);
 
-  // ODDS SECTION
-  let oddsHtml='';
+  // --- ODDS ---
+  var oddsHtml='';
   if(odds){
-    const aFav=isFav(odds.aLine);const bFav=isFav(odds.bLine);
-    oddsHtml=`<div class="odds-box">
-      <div class="odds-header">
-        <span class="odds-title">DraftKings moneyline</span>
-        <div class="odds-meta">
-          <span class="dk-badge">DK LIVE</span>
-          <span class="odds-updated" id="oddsUpdated_${fIdx}">—</span>
-          <button class="odds-refresh-btn" onclick="refreshOdds(${fIdx})">↻</button>
-        </div>
-      </div>
-      <div class="odds-grid">
-        <div class="odds-card">
-          <div class="odds-fighter">${a.name.split(' ')[0]}</div>
-          <div class="odds-line ${aFav?'odds-fav':'odds-dog'}" id="oddsLineA_${fIdx}">${odds.aLine}</div>
-          <div class="odds-implied">Implied: ${implied(odds.aLine)}</div>
-        </div>
-        <div class="odds-card">
-          <div class="odds-fighter">${b.name.split(' ')[0]}</div>
-          <div class="odds-line ${bFav?'odds-fav':'odds-dog'}" id="oddsLineB_${fIdx}">${odds.bLine}</div>
-          <div class="odds-implied">Implied: ${implied(odds.bLine)}</div>
-        </div>
-      </div>
-      <div class="odds-note">${odds.note||''}${odds.props?'<div class="odds-props">'+odds.props.map(p=>`<div class="odds-prop">${p}</div>`).join('')+'</div>':''}</div>
-    </div>`;
+    var aFav=odds.aLine&&odds.aLine.startsWith('-');
+    var bFav=odds.bLine&&odds.bLine.startsWith('-');
+    var aImpl=implied(odds.aLine), bImpl=implied(odds.bLine);
+    oddsHtml='<div class="odds-box">'
+      +'<div class="odds-header"><span class="odds-title">DraftKings moneyline</span>'
+      +'<div class="odds-meta"><span class="dk-badge">DK LIVE</span>'
+      +'<span class="odds-updated" id="oddsUpdated_'+fIdx+'">—</span>'
+      +'<button class="odds-refresh-btn" id="oddsRefBtn_'+fIdx+'">↻</button></div></div>'
+      +'<div class="odds-grid">'
+      +'<div class="odds-card"><div class="odds-fighter">'+a.name.split(' ')[0]+'</div>'
+      +'<div class="odds-line '+(aFav?'odds-fav':'odds-dog')+'" id="oddsLineA_'+fIdx+'">'+odds.aLine+'</div>'
+      +'<div class="odds-implied">Implied: '+aImpl+'</div></div>'
+      +'<div class="odds-card"><div class="odds-fighter">'+b.name.split(' ')[0]+'</div>'
+      +'<div class="odds-line '+(bFav?'odds-fav':'odds-dog')+'" id="oddsLineB_'+fIdx+'">'+odds.bLine+'</div>'
+      +'<div class="odds-implied">Implied: '+bImpl+'</div></div></div>'
+      +'<div class="odds-note">'+(odds.note||'');
+    if(odds.props) odds.props.forEach(function(p){ oddsHtml+='<div style="display:inline-block;font-size:10px;padding:3px 8px;border-radius:4px;background:var(--bg4);color:var(--text3);border:1px solid var(--border);margin:3px 3px 0 0">'+p+'</div>'; });
+    oddsHtml+='</div></div>';
   }
 
-  // TALENT SECTION
-  let talentHtml='';
+  // --- TALENT ---
+  var talentHtml='';
   if(a.talent||b.talent){
-    const ta=a.talent||{};const tb=b.talent||{};
-    talentHtml=`<div class="talent-box">
-      <div class="section-title">Talent level</div>
-      <div class="talent-grid">
-        <div class="talent-card"><h5 style="color:var(--blue)">${a.name.split(' ')[0]}</h5>${tierBadge(ta.tier||'veteran')}
-          <div style="margin-top:8px">
-            ${['striking','grappling','wrestling','cardio','chin'].map(k=>`<div class="talent-row"><span class="talent-label">${k}</span>${stars(ta[k]||3)}</div>`).join('')}
-          </div>
-        </div>
-        <div class="talent-card"><h5 style="color:var(--red)">${b.name.split(' ')[0]}</h5>${tierBadge(tb.tier||'veteran')}
-          <div style="margin-top:8px">
-            ${['striking','grappling','wrestling','cardio','chin'].map(k=>`<div class="talent-row"><span class="talent-label">${k}</span>${stars(tb[k]||3)}</div>`).join('')}
-          </div>
-        </div>
-      </div>
-    </div>`;
+    var ta=a.talent||{}, tb=b.talent||{};
+    function tierBadgeL(t){var m={elite:'tier-elite',contender:'tier-contender',prospect:'tier-prospect',veteran:'tier-veteran',gatekeeper:'tier-gatekeeper'};var l={elite:'ELITE',contender:'CONTENDER',prospect:'PROSPECT',veteran:'VETERAN',gatekeeper:'GATEKEEPER'};return'<span class="tier-badge '+(m[t]||'tier-veteran')+'">'+(l[t]||t.toUpperCase())+'</span>';}
+    function starsL(n,max){max=max||5;var s='';for(var i=1;i<=max;i++)s+='<div class="star '+(i<=n?'star-on':'star-off')+'"></div>';return'<div class="talent-stars">'+s+'</div>';}
+    function talentRows(t){return ['striking','grappling','wrestling','cardio','chin'].map(function(k){return'<div class="talent-row"><span class="talent-label">'+k+'</span>'+starsL(t[k]||3)+'</div>';}).join('');}
+    talentHtml='<div class="talent-box"><div class="section-title">Talent level</div><div class="talent-grid">'
+      +'<div class="talent-card"><h5 style="color:var(--blue)">'+a.name.split(' ')[0]+'</h5>'+tierBadgeL(ta.tier||'veteran')+'<div style="margin-top:8px">'+talentRows(ta)+'</div></div>'
+      +'<div class="talent-card"><h5 style="color:var(--red)">'+b.name.split(' ')[0]+'</h5>'+tierBadgeL(tb.tier||'veteran')+'<div style="margin-top:8px">'+talentRows(tb)+'</div></div>'
+      +'</div></div>';
   }
 
-  // NOTABLE WINS
-  const winsList=(f,dc)=>f.wins&&f.wins.length?f.wins.map(w=>`<div class="win-entry"><div class="win-dot ${dc}"></div><div><div class="win-name">${w.name}${w.hof?'<span class="hof-badge">HOF</span>':''}${w.champ?'<span class="champ-badge">CHAMP</span>':''}</div><div class="win-detail">${w.detail}</div></div></div>`).join(''):'<div class="no-wins">No notable wins listed</div>';
-  const winsHtml=`<div class="wins-box"><div class="section-title">Notable wins</div><div class="wins-grid">
-    <div class="wins-card"><h5 style="color:var(--blue)">${a.name.split(' ')[0]}</h5>${winsList(a,'win-dot-blue')}</div>
-    <div class="wins-card"><h5 style="color:var(--red)">${b.name.split(' ')[0]}</h5>${winsList(b,'win-dot-red')}</div>
-  </div></div>`;
+  // --- NOTABLE WINS ---
+  function winsList(f,dotCls){
+    if(!f.wins||!f.wins.length) return'<div class="no-wins">No notable wins listed</div>';
+    return f.wins.map(function(w){
+      return'<div class="win-entry"><div class="win-dot '+dotCls+'"></div><div>'
+        +'<div class="win-name">'+w.name+(w.hof?'<span class="hof-badge">HOF</span>':'')+(w.champ?'<span class="champ-badge">CHAMP</span>':'')+'</div>'
+        +'<div class="win-detail">'+w.detail+'</div></div></div>';
+    }).join('');
+  }
+  var winsHtml='<div class="wins-box"><div class="section-title">Notable wins</div><div class="wins-grid">'
+    +'<div class="wins-card"><h5 style="color:var(--blue)">'+a.name.split(' ')[0]+'</h5>'+winsList(a,'win-dot-blue')+'</div>'
+    +'<div class="wins-card"><h5 style="color:var(--red)">'+b.name.split(' ')[0]+'</h5>'+winsList(b,'win-dot-red')+'</div>'
+    +'</div></div>';
 
-  // ROUND TRACKER
-  const rdKey=getRoundKey(fIdx);
-  const rounds=roundData[rdKey]||[];
-  const roundsHtml=fIdx!=='c'?`<div class="rounds-box">
-    <div class="rounds-header">
-      <span class="rounds-title">Live round tracker</span>
-      <button class="rounds-clear" onclick="clearRounds(${fIdx})">Clear</button>
-    </div>
-    <div class="round-rows" id="roundRows_${fIdx}">
-      ${rounds.map((rd,i)=>`<div class="round-row">
-        <div class="rnd-label">Rd ${i+1}</div>
-        <div class="rnd-strikes">
-          <input class="rnd-input" type="number" min="0" placeholder="0" value="${rd.aStrikes}" onchange="updateRound(${fIdx},${i},'aStrikes',this.value)" style="text-align:right"/>
-          <span style="font-size:10px;color:var(--text3)">sig str</span>
-        </div>
-        <div class="rnd-winner-btns">
-          <button class="rnd-btn ${rd.winner==='a'?'picked-blue':''}" onclick="setRoundWinner(${fIdx},${i},'a')">${a.name.split(' ')[0]}</button>
-          <button class="rnd-btn ${rd.winner==='b'?'picked-red':''}" onclick="setRoundWinner(${fIdx},${i},'b')">${b.name.split(' ')[0]}</button>
-        </div>
-        <div class="rnd-strikes">
-          <span style="font-size:10px;color:var(--text3)">sig str</span>
-          <input class="rnd-input" type="number" min="0" placeholder="0" value="${rd.bStrikes}" onchange="updateRound(${fIdx},${i},'bStrikes',this.value)"/>
-        </div>
-        <div class="rnd-label" style="color:${rd.winner==='a'?'var(--blue)':rd.winner==='b'?'var(--red)':'var(--text3)'}">${rd.winner?rd.winner==='a'?a.name.split(' ')[0]:b.name.split(' ')[0]:'—'}</div>
-      </div>`).join('')}
-    </div>
-    <div id="scorecard_${fIdx}" class="scorecard"></div>
-  </div>`:'';
+  // --- ROUND TRACKER ---
+  var roundsHtml='';
+  if(fIdx!=='c'){
+    var rdKey=getRoundKey(fIdx);
+    var rounds=roundData[rdKey]||[];
+    var aFirst=a.name.split(' ')[0], bFirst=b.name.split(' ')[0];
+    roundsHtml='<div class="rounds-box" id="roundsBox_'+fIdx+'">'
+      +'<div class="rounds-header"><span class="rounds-title">Live round tracker</span>'
+      +'<button class="rounds-clear" id="clearRndBtn_'+fIdx+'">Clear</button></div>'
+      +'<div class="round-rows" id="roundRows_'+fIdx+'">'
+      +rounds.map(function(rd,i){
+        return'<div class="round-row">'
+          +'<div class="rnd-label">Rd '+(i+1)+'</div>'
+          +'<div class="rnd-strikes"><input class="rnd-input" type="number" min="0" placeholder="0" value="'+(rd.aStrikes||'')+'" id="rndA_'+fIdx+'_'+i+'" style="text-align:right"/><span style="font-size:10px;color:var(--text3)">sig</span></div>'
+          +'<div class="rnd-winner-btns">'
+          +'<button class="rnd-btn'+(rd.winner==='a'?' picked-blue':'')+'" id="rndBtnA_'+fIdx+'_'+i+'">'+aFirst+'</button>'
+          +'<button class="rnd-btn'+(rd.winner==='b'?' picked-red':'')+'" id="rndBtnB_'+fIdx+'_'+i+'">'+bFirst+'</button>'
+          +'</div>'
+          +'<div class="rnd-strikes"><span style="font-size:10px;color:var(--text3)">sig</span><input class="rnd-input" type="number" min="0" placeholder="0" value="'+(rd.bStrikes||'')+'" id="rndB_'+fIdx+'_'+i+'"/></div>'
+          +'<div class="rnd-label" style="color:'+(rd.winner==='a'?'var(--blue)':rd.winner==='b'?'var(--red)':'var(--text3)')+'">'+( rd.winner?( rd.winner==='a'?aFirst:bFirst):'—')+'</div>'
+          +'</div>';
+      }).join('')
+      +'</div><div id="scorecard_'+fIdx+'" class="scorecard"></div></div>';
+  }
 
-  // WIN PROBABILITY TRACKER
-  const modelWinner = prob[0]>=prob[1] ? a : b;
-  const modelLoser  = prob[0]>=prob[1] ? b : a;
-  const modelWinPct = Math.max(prob[0],prob[1]);
-  const modelWinCol = prob[0]>=prob[1] ? 'var(--blue)' : 'var(--red)';
-  const trackerStats = loadTracker();
-  const trackerPct   = trackerStats.total>0 ? Math.round(trackerStats.correct/trackerStats.total*100)+'%' : '—';
+  // --- TRACKER ---
+  var predHtml='';
+  if(fIdx!=='c'){
+    var modelWinner=prob[0]>=prob[1]?a:b;
+    var modelLoser=prob[0]>=prob[1]?b:a;
+    var modelWinPct=Math.max(prob[0],prob[1]);
+    var ts=loadTracker();
+    var tPct=ts.total>0?Math.round(ts.correct/ts.total*100)+'%':'—';
+    predHtml='<div class="tracker-box">'
+      +'<div class="tracker-header"><span class="tracker-title">Win probability tracker</span>'
+      +'<button class="clear-log-btn" id="clearLogBtn_'+fIdx+'">Clear history</button></div>'
+      +'<div class="tracker-stats">'
+      +'<div class="tstat"><div class="tstat-num" style="color:var(--gold)">'+tPct+'</div><div class="tstat-label">Model accuracy</div></div>'
+      +'<div class="tstat"><div class="tstat-num" style="color:var(--green)">'+ts.correct+'</div><div class="tstat-label">Correct picks</div></div>'
+      +'<div class="tstat"><div class="tstat-num" style="color:var(--text2)">'+ts.total+'</div><div class="tstat-label">Fights logged</div></div>'
+      +'</div>'
+      +'<div class="model-pick-row">'
+      +'<div><div class="model-pick-label">Model predicts</div>'
+      +'<div class="model-pick-fighter" style="color:'+( prob[0]>=prob[1]?'var(--blue)':'var(--red)')+'">'+ modelWinner.name+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+wm.pick+'</div></div>'
+      +'<div style="text-align:right"><div class="model-pick-pct" style="color:'+( prob[0]>=prob[1]?'var(--blue)':'var(--red)')+'">'+modelWinPct+'%</div>'
+      +'<div style="font-size:9px;color:var(--text3)">win probability</div></div></div>'
+      +'<div id="predResult_'+fIdx+'">'
+      +'<p style="font-size:11px;color:var(--text3);margin-bottom:7px">Auto-tracks from ESPN · log manually if needed:</p>'
+      +'<div class="result-btns">'
+      +'<button class="res-btn res-btn-correct" id="resCorrect_'+fIdx+'">✓ '+modelWinner.name.split(' ')[0]+' Won</button>'
+      +'<button class="res-btn res-btn-wrong" id="resWrong_'+fIdx+'">✗ '+modelLoser.name.split(' ')[0]+' Won</button>'
+      +'</div></div>'
+      +'<div class="tracker-log"><div class="log-title">Recent fight history</div>'
+      +'<div id="trackerLogDisplay_'+fIdx+'">'+renderTrackerLog()+'</div></div>'
+      +'</div>';
+  }
 
-  const predHtml=fIdx!=='c'?`<div class="tracker-box">
-    <div class="tracker-header">
-      <span class="tracker-title">Win probability tracker</span>
-      <button class="clear-log-btn" onclick="clearTrackerLog()">Clear history</button>
-    </div>
+  // --- STAT ROW HELPERS (local) ---
+  function sr(lbl,va,vb,higher,isText){
+    higher = higher!==false;
+    isText = isText===true;
+    var nA=parseFloat(va)||0, nB=parseFloat(vb)||0;
+    var clA='', clB='';
+    if(!isText){
+      if(higher){if(nA>nB)clA='adv-l';else if(nB>nA)clB='adv-r';}
+      else{if(nA<nB)clA='adv-l';else if(nB<nA)clB='adv-r';}
+    }
+    var bA=60, bB=60;
+    if(!isText){var mn=Math.min(nA,nB),mx=Math.max(nA,nB),rng=mx-mn||1;bA=Math.round(40+((nA-mn)/rng)*55);bB=Math.round(40+((nB-mn)/rng)*55);}
+    return'<div class="stat-row"><div class="sv-l"><span class="'+clA+'">'+va+'</span></div><div class="sl">'+lbl+'</div><div class="sv-r"><span class="'+clB+'">'+vb+'</span></div></div>'
+      +(isText?'':'<div class="bar-row"><div class="bc bl"><div class="bf" style="width:'+bA+'%"></div></div><div></div><div class="bc br"><div class="bf" style="width:'+bB+'%"></div></div></div>');
+  }
 
-    <div class="tracker-stats">
-      <div class="tstat">
-        <div class="tstat-num" style="color:var(--gold)">${trackerPct}</div>
-        <div class="tstat-label">Model accuracy</div>
-      </div>
-      <div class="tstat">
-        <div class="tstat-num" style="color:var(--green)">${trackerStats.correct}</div>
-        <div class="tstat-label">Correct picks</div>
-      </div>
-      <div class="tstat">
-        <div class="tstat-num" style="color:var(--text2)">${trackerStats.total}</div>
-        <div class="tstat-label">Fights logged</div>
-      </div>
-    </div>
+  // --- MAIN HTML ---
+  var html=''
+    +'<div class="vs-bar">'
+    +'<div class="f-blue">'
+    +'<div><span class="rank-badge rank-blue">'+(a.rank||'NR')+'</span></div>'
+    +'<div class="f-name">'+a.name+'</div>'
+    +(a.nick?'<div class="f-nick">"'+a.nick+'"</div>':'')
+    +'<div class="f-rec" style="color:var(--blue)">'+(a.rec||'')+'</div>'
+    +'<div class="f-form">'+(a.form||'')+'</div></div>'
+    +'<div class="vs-center"><div class="weight-class">'+(label||'')+'</div><div class="vs-pill">VS</div></div>'
+    +'<div class="f-red">'
+    +'<div><span class="rank-badge rank-red">'+(b.rank||'NR')+'</span></div>'
+    +'<div class="f-name">'+b.name+'</div>'
+    +(b.nick?'<div class="f-nick">"'+b.nick+'"</div>':'')
+    +'<div class="f-rec" style="color:var(--red)">'+(b.rec||'')+'</div>'
+    +'<div class="f-form">'+(b.form||'')+'</div></div></div>'
 
-    <div class="model-pick-row">
-      <div>
-        <div class="model-pick-label">Model predicts</div>
-        <div class="model-pick-fighter" style="color:${modelWinCol}">${modelWinner.name}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${wm.pick}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="model-pick-pct" style="color:${modelWinCol}">${modelWinPct}%</div>
-        <div style="font-size:9px;color:var(--text3)">win probability</div>
-      </div>
-    </div>
+    +'<div class="wm-box"><div class="wm-header"><span class="wm-label">Predicted win method</span>'
+    +'<span class="wm-pick wm-'+(wm.method||'dec')+'">'+wm.pick+'</span></div>'
+    +'<p class="wm-reason">'+wm.reason+'</p></div>'
 
-    <div id="predResult_${fIdx}">
-      <div style="background:var(--bg4);border-radius:8px;padding:9px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <span style="font-size:10px;color:var(--text3)">Auto-tracking via ESPN</span>
-        <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,.2)">Results log automatically when ESPN marks fights complete</span>
-      </div>
-      <p style="font-size:11px;color:var(--text3);margin-bottom:7px">Or log manually if ESPN is unavailable:</p>
-      <div class="result-btns">
-        <button class="res-btn res-btn-correct"
-          onclick="recordResult(${fIdx},'${modelWinner.name.replace(/'/g,"\\'")}',${modelWinPct},true)">
-          ✓ ${modelWinner.name.split(' ')[0]} Won
-        </button>
-        <button class="res-btn res-btn-wrong"
-          onclick="recordResult(${fIdx},'${modelWinner.name.replace(/'/g,"\\'")}',${modelWinPct},false)">
-          ✗ ${modelLoser.name.split(' ')[0]} Won
-        </button>
-      </div>
-    </div>
+    +oddsHtml
 
-    <div class="tracker-log">
-      <div class="log-title">Recent fight history</div>
-      <div id="trackerLogDisplay">\${renderTrackerLog()}</div>
-    </div>
-  </div>`:'';
+    +'<div class="section"><div class="section-title">Physical</div>'
+    +sr('Age',a.age,b.age,false)
+    +sr('Height',(a.height||''),(b.height||''),true,true)
+    +sr('Reach',(a.reach||0)+'"',(b.reach||0)+'"')
+    +sr('Stance',(a.stance||''),(b.stance||''),true,true)
+    +sr('Style',(a.style||''),(b.style||''),true,true)
+    +'</div>'
 
-  return`
-  <div class="vs-bar">
-    <div class="f-blue">
-      <div><span class="rank-badge rank-blue">${a.rank||'NR'}</span></div>
-      <div class="f-name">${a.name}</div>
-      ${a.nick?`<div class="f-nick">"${a.nick}"</div>`:''}
-      <div class="f-rec" style="color:var(--blue)">${a.rec||''}</div>
-      <div class="f-form">${a.form||''}</div>
-    </div>
-    <div class="vs-center">
-      <div class="weight-class">${label||''}</div>
-      <div class="vs-pill">VS</div>
-    </div>
-    <div class="f-red">
-      <div><span class="rank-badge rank-red">${b.rank||'NR'}</span></div>
-      <div class="f-name">${b.name}</div>
-      ${b.nick?`<div class="f-nick">"${b.nick}"</div>`:''}
-      <div class="f-rec" style="color:var(--red)">${b.rec||''}</div>
-      <div class="f-form">${b.form||''}</div>
-    </div>
-  </div>
+    +'<div class="section"><div class="section-title">Striking</div>'
+    +sr('Sig. strikes/min',a.slpm.toFixed(2),b.slpm.toFixed(2))
+    +sr('Striking accuracy',a.sacc+'%',b.sacc+'%')
+    +sr('Striking defense',a.sdef+'%',b.sdef+'%')
+    +'</div>'
 
-  <div class="wm-box">
-    <div class="wm-header"><span class="wm-label">Predicted win method</span><span class="wm-pick ${wmClass(wm.method)}">${wm.pick}</span></div>
-    <p class="wm-reason">${wm.reason}</p>
-  </div>
+    +'<div class="section"><div class="section-title">Grappling & takedowns</div>'
+    +sr('TDs / 15 min',a.tdavg.toFixed(2),b.tdavg.toFixed(2))
+    +sr('TD accuracy',a.tdacc+'%',b.tdacc+'%')
+    +sr('TD defense',a.tddef+'%',b.tddef+'%')
+    +sr('Submission avg',a.subavg.toFixed(2),b.subavg.toFixed(2))
+    +'</div>'
 
-  ${oddsHtml}
+    +'<div class="section"><div class="section-title">Win methods (career)</div>'
+    +'<div class="finish-grid">'
+    +'<div class="finish-card"><h4 style="color:var(--blue)">'+a.name.split(' ')[0]+'</h4>'
+    +'<div class="finish-row"><span class="finish-type">KO/TKO</span><span class="finish-val">'+a.ko+'</span></div>'
+    +'<div class="finish-row"><span class="finish-type">Submission</span><span class="finish-val">'+a.sub+'</span></div>'
+    +'<div class="finish-row"><span class="finish-type">Decision</span><span class="finish-val">'+a.dec+'</span></div>'
+    +'<div class="finish-rate-row"><span class="finish-type">Finish rate</span><span class="finish-val" style="color:var(--blue)">'+finRateA+'%</span></div></div>'
+    +'<div class="finish-card"><h4 style="color:var(--red)">'+b.name.split(' ')[0]+'</h4>'
+    +'<div class="finish-row"><span class="finish-type">KO/TKO</span><span class="finish-val">'+b.ko+'</span></div>'
+    +'<div class="finish-row"><span class="finish-type">Submission</span><span class="finish-val">'+b.sub+'</span></div>'
+    +'<div class="finish-row"><span class="finish-type">Decision</span><span class="finish-val">'+b.dec+'</span></div>'
+    +'<div class="finish-rate-row"><span class="finish-type">Finish rate</span><span class="finish-val" style="color:var(--red)">'+finRateB+'%</span></div></div>'
+    +'</div></div>'
 
-  <div class="section">
-    <div class="section-title">Physical</div>
-    ${statRow('Age',a.age,b.age,false)}
-    ${statRow('Height',a.height||'',b.height||'',true,true)}
-    ${statRow('Reach',(a.reach||0)+'"',(b.reach||0)+'"')}
-    ${statRow('Stance',a.stance||'',b.stance||'',true,true)}
-    ${statRow('Style',a.style||'',b.style||'',true,true)}
-  </div>
+    +talentHtml
+    +winsHtml
 
-  <div class="section">
-    <div class="section-title">Striking</div>
-    ${statRow('Sig. strikes/min',a.slpm.toFixed(2),b.slpm.toFixed(2))}
-    ${statRow('Striking accuracy',a.sacc+'%',b.sacc+'%')}
-    ${statRow('Striking defense',a.sdef+'%',b.sdef+'%')}
-  </div>
+    +'<div class="section"><div class="section-title">Win probability · Seattle · Sea level · Standard octagon</div>'
+    +'<div class="prob-cards">'
+    +'<div class="prob-card"><div class="prob-pct prob-pct-blue">'+prob[0]+'%</div><div class="prob-name">'+a.name.split(' ')[0]+'</div></div>'
+    +'<div class="prob-card"><div class="prob-pct prob-pct-red">'+prob[1]+'%</div><div class="prob-name">'+b.name.split(' ')[0]+'</div></div>'
+    +'</div>'
+    +'<div class="prob-bar-track"><div class="pb-blue" style="width:'+prob[0]+'%"></div><div class="pb-red" style="width:'+prob[1]+'%"></div></div>'
+    +'<div class="prob-labels"><span>'+a.name.split(' ')[0]+' '+prob[0]+'%</span><span>'+b.name.split(' ')[0]+' '+prob[1]+'%</span></div>'
+    +'</div>'
 
-  <div class="section">
-    <div class="section-title">Grappling & takedowns</div>
-    ${statRow('TDs / 15 min',a.tdavg.toFixed(2),b.tdavg.toFixed(2))}
-    ${statRow('TD accuracy',a.tdacc+'%',b.tdacc+'%')}
-    ${statRow('TD defense',a.tddef+'%',b.tddef+'%')}
-    ${statRow('Submission avg',a.subavg.toFixed(2),b.subavg.toFixed(2))}
-  </div>
+    +roundsHtml
+    +predHtml
 
-  <div class="section">
-    <div class="section-title">Win methods (career)</div>
-    <div class="finish-grid">
-      <div class="finish-card">
-        <h4 style="color:var(--blue)">${a.name.split(' ')[0]}</h4>
-        <div class="finish-row"><span class="finish-type">KO/TKO</span><span class="finish-val">${a.ko}</span></div>
-        <div class="finish-row"><span class="finish-type">Submission</span><span class="finish-val">${a.sub}</span></div>
-        <div class="finish-row"><span class="finish-type">Decision</span><span class="finish-val">${a.dec}</span></div>
-        <div class="finish-rate-row"><span class="finish-type" style="font-size:10px">Finish rate</span><span class="finish-val" style="color:var(--blue)">${finRateA}%</span></div>
-      </div>
-      <div class="finish-card">
-        <h4 style="color:var(--red)">${b.name.split(' ')[0]}</h4>
-        <div class="finish-row"><span class="finish-type">KO/TKO</span><span class="finish-val">${b.ko}</span></div>
-        <div class="finish-row"><span class="finish-type">Submission</span><span class="finish-val">${b.sub}</span></div>
-        <div class="finish-row"><span class="finish-type">Decision</span><span class="finish-val">${b.dec}</span></div>
-        <div class="finish-rate-row"><span class="finish-type" style="font-size:10px">Finish rate</span><span class="finish-val" style="color:var(--red)">${finRateB}%</span></div>
-      </div>
-    </div>
-  </div>
+    +'<div class="analysis-box">'
+    +'<div class="analysis-edge">Model edge: <span style="color:'+wCol+'">'+wName+' ('+Math.max(prob[0],prob[1])+'%)</span></div>'
+    +'<p class="analysis-p">'+a.name.split(' ')[0]+': '+(a.streak||'')+' · '+(a.style||'')+'</p>'
+    +'<p class="analysis-p">'+b.name.split(' ')[0]+': '+(b.streak||'')+' · '+(b.style||'')+'</p>'
+    +'<div id="deepBtnWrap_'+fIdx+'"><button class="deep-btn" id="deepBtn_'+fIdx+'">⚡ Deep AI Analysis</button></div>'
+    +'<div id="aiPanel_'+fIdx+'"></div>'
+    +'</div>';
 
-  ${talentHtml}
-  ${winsHtml}
+  // Return HTML — attach event listeners after caller inserts into DOM
+  // Store pending bindings on a global queue
+  window._pendingBindings = window._pendingBindings || [];
+  window._pendingBindings.push({fIdx:fIdx, a:a, b:b, wm:wm, prob:prob, modelWinner:prob[0]>=prob[1]?a:b, modelLoser:prob[0]>=prob[1]?b:a, modelWinPct:Math.max(prob[0],prob[1])});
 
-  <div class="section">
-    <div class="section-title">Win probability · Seattle (175ft altitude · Indoor · Standard octagon)</div>
-    <div class="prob-cards">
-      <div class="prob-card"><div class="prob-pct prob-pct-blue">${prob[0]}%</div><div class="prob-name">${a.name.split(' ')[0]}</div></div>
-      <div class="prob-card"><div class="prob-pct prob-pct-red">${prob[1]}%</div><div class="prob-name">${b.name.split(' ')[0]}</div></div>
-    </div>
-    <div class="prob-bar-track"><div class="pb-blue" style="width:${prob[0]}%"></div><div class="pb-red" style="width:${prob[1]}%"></div></div>
-    <div class="prob-labels"><span>${a.name.split(' ')[0]} ${prob[0]}%</span><span>${b.name.split(' ')[0]} ${prob[1]}%</span></div>
-  </div>
-
-  ${roundsHtml}
-  ${predHtml}
-
-  <div class="analysis-box">
-    <div class="analysis-edge">Model edge: <span style="color:${wCol}">${wName} (${Math.max(prob[0],prob[1])}%)</span></div>
-    <p class="analysis-p">${a.name.split(' ')[0]}: ${a.streak||''} · ${a.style}</p>
-    <p class="analysis-p">${b.name.split(' ')[0]}: ${b.streak||''} · ${b.style}</p>
-    <button class="deep-btn" id="deepBtn_${fIdx}" onclick="runDeepAnalysis(this,'${a.name.replace(/'/g,"\\'")}','${b.name.replace(/'/g,"\\'")}','${(a.rec||'').replace(/'/g,"\\'")}','${(b.rec||'').replace(/'/g,"\\'")}','${(a.style||'').replace(/'/g,"\\'")}','${(b.style||'').replace(/'/g,"\\'")}',${a.sacc},${b.sacc},${a.sdef},${b.sdef},${a.tdacc},${b.tdacc},${a.ko},${b.ko},${a.sub},${b.sub},${prob[0]},${prob[1]},'${(wm.pick||'').replace(/'/g,"\\'")}')">
-      <span>⚡</span> Deep AI Analysis
-    </button>
-    <div id="aiPanel_${fIdx}"></div>
-  </div>`;
+  return html;
 }
+
+// Called after renderComp HTML is inserted into the DOM
+function bindCompListeners(fIdx, a, b, wm, prob, modelWinner, modelLoser, modelWinPct){
+  // Odds refresh
+  var oddsBtn=document.getElementById('oddsRefBtn_'+fIdx);
+  if(oddsBtn) oddsBtn.addEventListener('click',function(){ refreshOdds(fIdx); });
+
+  // Clear rounds
+  var clearRndBtn=document.getElementById('clearRndBtn_'+fIdx);
+  if(clearRndBtn) clearRndBtn.addEventListener('click',function(){ clearRounds(fIdx); });
+
+  // Clear log
+  var clearLogBtn=document.getElementById('clearLogBtn_'+fIdx);
+  if(clearLogBtn) clearLogBtn.addEventListener('click',function(){ clearTrackerLog(); });
+
+  // Record result buttons
+  var resC=document.getElementById('resCorrect_'+fIdx);
+  var resW=document.getElementById('resWrong_'+fIdx);
+  if(resC) resC.addEventListener('click',function(){ recordResult(fIdx, modelWinner.name, modelWinPct, true); });
+  if(resW) resW.addEventListener('click',function(){ recordResult(fIdx, modelWinner.name, modelWinPct, false); });
+
+  // Round tracker inputs and buttons
+  if(fIdx!=='c'){
+    var numRounds=fIdx<2?5:3;
+    for(var i=0;i<numRounds;i++){
+      (function(ri){
+        var inpA=document.getElementById('rndA_'+fIdx+'_'+ri);
+        var inpB=document.getElementById('rndB_'+fIdx+'_'+ri);
+        var btnA=document.getElementById('rndBtnA_'+fIdx+'_'+ri);
+        var btnB=document.getElementById('rndBtnB_'+fIdx+'_'+ri);
+        if(inpA) inpA.addEventListener('change',function(){ updateRound(fIdx,ri,'aStrikes',this.value); });
+        if(inpB) inpB.addEventListener('change',function(){ updateRound(fIdx,ri,'bStrikes',this.value); });
+        if(btnA) btnA.addEventListener('click',function(){ setRoundWinner(fIdx,ri,'a'); });
+        if(btnB) btnB.addEventListener('click',function(){ setRoundWinner(fIdx,ri,'b'); });
+      })(i);
+    }
+  }
+
+  // Deep AI analysis button
+  var deepBtn=document.getElementById('deepBtn_'+fIdx);
+  if(deepBtn) deepBtn.addEventListener('click',function(){
+    runDeepAnalysis(deepBtn,a.name,b.name,a.rec||'',b.rec||'',a.style||'',b.style||'',a.sacc,b.sacc,a.sdef,b.sdef,a.tdacc,b.tdacc,a.ko,b.ko,a.sub,b.sub,prob[0],prob[1],wm.pick||'');
+  });
+}
+
 
 // ═══════════════════════════════════════════════════
 // ROUND TRACKER ACTIONS
@@ -1381,9 +1388,16 @@ function renderVenueBanner(targetId){
 // FIGHT SELECTOR
 // ═══════════════════════════════════════════════════
 function selectFight(idx){
-  const f=FIGHTS[parseInt(idx)];
+  var i=parseInt(idx);
+  var f=FIGHTS[i];
+  if(!f) return;
   renderVenueBanner('venueBanner');
-  document.getElementById('fightDisplay').innerHTML=renderComp(f.a,f.b,f.wm,f.label,f.odds,parseInt(idx));
+  window._pendingBindings=[];
+  document.getElementById('fightDisplay').innerHTML=renderComp(f.a,f.b,f.wm,f.label,f.odds,i);
+  if(window._pendingBindings&&window._pendingBindings.length){
+    var b=window._pendingBindings[0];
+    bindCompListeners(b.fIdx,b.a,b.b,b.wm,b.prob,b.modelWinner,b.modelLoser,b.modelWinPct);
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1404,19 +1418,28 @@ function selectLiveFight(espnCompId){
 // SELECT FIGHT FROM LIVE CARD OR STATIC CARD
 // ═══════════════════════════════════════════════════
 function selectFromEspn(idx){
-  const f = FIGHTS[parseInt(idx)];
-  if(!f) return;
-
-  // Render directly into liveCompare so it appears on the Live Card tab
-  // without navigating away — user stays on the same page
-  renderVenueBanner('liveVenueBanner');
-  document.getElementById('liveCompare').innerHTML =
-    renderComp(f.a, f.b, f.wm, f.label, f.odds, parseInt(idx));
-  document.getElementById('liveCompare').scrollIntoView({behavior:'smooth', block:'start'});
-
-  // Also sync the master dropdown in case user switches tabs
-  const nav = document.getElementById('masterNav');
-  if(nav) nav.value = 'fight_' + idx;
+  try {
+    var i=parseInt(idx);
+    var f=FIGHTS[i];
+    if(!f){ console.error('selectFromEspn: no fight at index',i); return; }
+    renderVenueBanner('liveVenueBanner');
+    var lc=document.getElementById('liveCompare');
+    if(!lc){ console.error('liveCompare div not found'); return; }
+    window._pendingBindings=[];
+    lc.innerHTML=renderComp(f.a,f.b,f.wm,f.label,f.odds,i);
+    // Bind all event listeners now that HTML is in DOM
+    if(window._pendingBindings&&window._pendingBindings.length){
+      var b=window._pendingBindings[0];
+      bindCompListeners(b.fIdx,b.a,b.b,b.wm,b.prob,b.modelWinner,b.modelLoser,b.modelWinPct);
+    }
+    lc.scrollIntoView({behavior:'smooth',block:'start'});
+    var nav=document.getElementById('masterNav');
+    if(nav) nav.value='fight_'+i;
+  } catch(err){
+    console.error('selectFromEspn error:',err);
+    var lc=document.getElementById('liveCompare');
+    if(lc) lc.innerHTML='<div style="padding:1rem;color:#ef4444;font-size:13px">Error: '+err.message+'</div>';
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1508,8 +1531,10 @@ function runRosterCompare(){
   if(wKo+wSub>wDec){if(wKo>=wSub){method='ko';pick=winner.name.split(' ').slice(-1)[0]+' KO/TKO';}else{method='sub';pick=winner.name.split(' ').slice(-1)[0]+' Submission';}}
   const crossDiv=a.div!==b.div?` (${a.div} vs ${b.div})`:'';
   const wm={pick,method,reason:`${winner.name} projected winner at ${Math.max(prob[0],prob[1])}% based on combined stat model.${crossDiv}`};
-  const res=document.getElementById('rosterResult');
-  res.innerHTML=renderComp(a,b,wm,`${a.div}${crossDiv?'/'+b.div:''} · Roster Matchup`,null,'c');
+  var res=document.getElementById('rosterResult');
+  window._pendingBindings=[];
+  res.innerHTML=renderComp(a,b,wm,(a.div+(crossDiv?'/'+b.div:'')+' · Roster Matchup'),null,'c');
+  if(window._pendingBindings&&window._pendingBindings.length){var pb=window._pendingBindings[0];bindCompListeners(pb.fIdx,pb.a,pb.b,pb.wm,pb.prob,pb.modelWinner,pb.modelLoser,pb.modelWinPct);}
   res.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -1526,7 +1551,9 @@ function runCustom(){
   let method='dec',pick=winner.name.split(' ')[0]+' Decision';
   if(wKo+wSub>wDec){if(wKo>=wSub){method='ko';pick=winner.name.split(' ')[0]+' KO/TKO';}else{method='sub';pick=winner.name.split(' ')[0]+' Submission';}}
   const wm={pick,method,reason:`${a.name} finish rate: ${Math.round((a.ko+a.sub)/(a.ko+a.sub+a.dec+1)*100)}% · ${b.name} finish rate: ${Math.round((b.ko+b.sub)/(b.ko+b.sub+b.dec+1)*100)}%. Model: ${a.name.split(' ')[0]} ${prob[0]}% vs ${b.name.split(' ')[0]} ${prob[1]}%.`};
+  window._pendingBindings=[];
   document.getElementById('customResult').innerHTML=renderComp(a,b,wm,'Custom matchup',null,'c');
+  if(window._pendingBindings&&window._pendingBindings.length){var pb=window._pendingBindings[0];bindCompListeners(pb.fIdx,pb.a,pb.b,pb.wm,pb.prob,pb.modelWinner,pb.modelLoser,pb.modelWinPct);}
 }
 
 // ═══════════════════════════════════════════════════

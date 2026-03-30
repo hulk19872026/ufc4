@@ -3,70 +3,45 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>UFCStats — Live Fight Comparator</title>
+<title>UFCStats — Fight Comparator</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥊</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#0a0a0b;--bg2:#111114;--bg3:#18181c;--bg4:#1e1e24;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--text:#f0f0f0;--text2:#a0a0a8;--text3:#5a5a65;--blue:#3b82f6;--blue-dim:#1d4ed8;--blue-bg:rgba(59,130,246,.12);--red:#ef4444;--red-dim:#b91c1c;--red-bg:rgba(239,68,68,.12);--gold:#f59e0b;--green:#22c55e;--green-bg:rgba(34,197,94,.1);--amber-bg:rgba(245,158,11,.1)}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
-/* HEADER */
+body{font-family:'Barlow',sans-serif;background:#0a0a0b;color:#f0f0f0;min-height:100vh}
+:root{--bg:#0a0a0b;--bg2:#111114;--bg3:#18181c;--bg4:#1e1e24;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--text:#f0f0f0;--text2:#a0a0a8;--text3:#5a5a65;--blue:#3b82f6;--blue-dim:#1d4ed8;--blue-bg:rgba(59,130,246,.12);--red:#ef4444;--red-bg:rgba(239,68,68,.12);--gold:#f59e0b;--green:#22c55e;--green-bg:rgba(34,197,94,.1)}
 .hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:.75rem 1.25rem;position:sticky;top:0;z-index:100}
 .hdr-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .logo{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:.04em}
 .logo span{color:var(--red)}
-.live-badge{display:flex;align-items:center;gap:5px;background:var(--red-bg);border:1px solid rgba(239,68,68,.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;color:var(--red);letter-spacing:.04em}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.4s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.event-info{font-size:11px;color:var(--text3)}
-.key-btn{font-size:11px;color:var(--blue);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'Barlow',sans-serif}
-/* ACCURACY CHIP */
-.acc-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px}
+.acc-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:11px}
 .acc-pct{font-weight:700;color:var(--gold)}
-/* MAIN */
-.main{max-width:760px;margin:0 auto;padding:1rem 1rem 3rem}
-/* TABS */
-/* master nav dropdown gets extra height and font weight */
-.sel-wrap select{font-size:13px;font-weight:500}
-/* ESPN LIVE STRIP */
-.espn-strip{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:1rem}
-.espn-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.espn-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
-.espn-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(255,60,0,.15);color:#ff6030;border:1px solid rgba(255,80,0,.3);letter-spacing:.04em}
-.espn-refresh-btn{font-size:10px;padding:3px 9px;border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:6px;cursor:pointer;font-family:'Barlow',sans-serif}
-.espn-refresh-btn:hover{background:var(--bg4)}
-.espn-fights{display:flex;flex-direction:column;gap:6px}
-.espn-fight{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:8px 10px;background:var(--bg4);border-radius:8px;border:1px solid var(--border);transition:border-color .15s,background .15s}
-.espn-fight[style*="cursor"]:hover{background:var(--bg3) !important;border-color:var(--blue) !important}
-.espn-fight.live-fight{border-color:var(--red);background:rgba(239,68,68,.06)}
-.espn-fight.completed{opacity:.7}
-.ef-name{font-size:12px;font-weight:500}
-.ef-rec{font-size:10px;color:var(--text3);margin-top:1px}
-.ef-left{text-align:right}.ef-right{text-align:left}
-.ef-center{text-align:center}
-.ef-status{font-size:10px;color:var(--text2);font-weight:500}
-.ef-weight{font-size:9px;color:var(--text3);margin-top:2px}
-.ef-time{font-size:10px;color:var(--blue)}
-.winner-tag{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2);margin-left:4px}
-.espn-loading{font-size:12px;color:var(--text3);text-align:center;padding:12px}
-/* FIGHT SELECTOR */
-.sel-section{margin-bottom:1.25rem}
-.sel-label{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
-.sel-wrap{position:relative}
-.sel-wrap select{width:100%;padding:11px 40px 11px 14px;font-size:13px;font-weight:500;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:10px;appearance:none;cursor:pointer;font-family:'Barlow',sans-serif}
-.sel-wrap select:focus{outline:none;border-color:var(--blue)}
-.sel-wrap select option{background:#1a1a22}
-.chevron{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);font-size:11px}
-/* VENUE BANNER */
-.venue-banner{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.venue-item{font-size:11px;color:var(--text3)}
-.venue-item strong{color:var(--text2);font-weight:500}
-.venue-modifier{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
-.mod-pos{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2)}
-.mod-neg{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
-.mod-neu{background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
+.key-btn{font-size:11px;color:var(--blue);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'Barlow',sans-serif}
+.main{max-width:760px;margin:0 auto;padding:1rem 1rem 4rem}
+/* NAV DROPDOWN */
+.nav-wrap{position:relative;margin-bottom:1.25rem}
+.nav-wrap select{width:100%;padding:12px 40px 12px 16px;font-size:14px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:12px;appearance:none;cursor:pointer}
+.nav-wrap select:focus{outline:none;border-color:var(--blue)}
+.nav-wrap select option{background:#1a1a22;font-weight:400;font-size:13px}
+.nav-wrap select optgroup{font-size:11px;color:var(--text3)}
+.nav-chevron{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);font-size:12px}
+/* PANELS */
+#livePanel,#cardPanel,#rosterPanel,#customPanel{display:none}
+/* FIGHT LIST */
+.fight-list{display:flex;flex-direction:column;gap:6px}
+.fight-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
+.fight-row:hover{border-color:var(--blue);background:var(--bg4)}
+.fight-row:active{background:var(--blue-bg)}
+.fr-names{font-size:13px;font-weight:500;color:var(--text)}
+.fr-names span{color:var(--text3);font-size:11px;margin:0 4px}
+.fr-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.fr-pick{text-align:right}
+.fr-pct{font-size:12px;font-weight:600;color:var(--blue)}
+.fr-pct-label{font-size:9px;color:var(--text3);margin-top:2px}
+.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:14px 0 7px}
+.section-label.prelim{color:var(--text3)}
+/* CONTENT AREA */
+.content-area{margin-top:1rem}
 /* VS BAR */
 .vs-bar{display:grid;grid-template-columns:1fr 64px 1fr;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
 .f-blue{text-align:right}.f-red{text-align:left}
@@ -78,47 +53,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .rank-blue{background:var(--blue-bg);color:var(--blue)}
 .rank-red{background:var(--red-bg);color:var(--red)}
 .vs-center{text-align:center}
-.vs-pill{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text2);letter-spacing:.05em}
+.vs-pill{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text2)}
 .weight-class{font-size:9px;color:var(--text3);margin-bottom:6px;letter-spacing:.04em}
-/* ODDS BOX */
-.odds-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
-.odds-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
-.odds-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
-.odds-meta{display:flex;align-items:center;gap:8px}
-.dk-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(98,203,93,.12);color:#62cb5d;border:1px solid rgba(98,203,93,.2);letter-spacing:.04em}
-.odds-refresh-btn{font-size:10px;padding:3px 9px;border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:6px;cursor:pointer;font-family:'Barlow',sans-serif}
-.odds-refresh-btn:hover{background:var(--bg4)}
-.odds-updated{font-size:9px;color:var(--text3)}
-.odds-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.odds-card{background:var(--bg4);border-radius:10px;padding:10px 12px;text-align:center}
-.odds-fighter{font-size:11px;color:var(--text2);margin-bottom:4px}
-.odds-line{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1}
-.odds-fav{color:var(--red)}.odds-dog{color:var(--gold)}
-.odds-implied{font-size:10px;color:var(--text3);margin-top:3px}
-.odds-note{font-size:11px;color:var(--text3);text-align:center}
-.odds-props{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.odds-prop{font-size:10px;padding:3px 8px;border-radius:4px;background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
-.odds-prop span{color:var(--gold);font-weight:600}
-/* ROUND TRACKER */
-.rounds-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
-.rounds-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.rounds-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
-.rounds-clear{font-size:10px;padding:3px 9px;border:1px solid var(--border2);background:transparent;color:var(--text3);border-radius:6px;cursor:pointer;font-family:'Barlow',sans-serif}
-.round-rows{display:flex;flex-direction:column;gap:6px}
-.round-row{display:grid;grid-template-columns:50px 1fr auto 1fr 50px;align-items:center;gap:6px;padding:8px 10px;background:var(--bg4);border-radius:8px}
-.rnd-label{font-size:11px;font-weight:600;color:var(--text3);text-align:center}
-.rnd-strikes{display:flex;align-items:center;gap:4px}
-.rnd-input{width:54px;padding:4px 6px;font-size:12px;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:6px;text-align:center;font-family:'Barlow',sans-serif}
-.rnd-input:focus{outline:none;border-color:var(--blue)}
-.rnd-winner-btns{display:flex;gap:4px;justify-content:center}
-.rnd-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'Barlow',sans-serif;transition:all .12s;white-space:nowrap}
-.rnd-btn.picked-blue{background:var(--blue-bg);color:var(--blue);border-color:var(--blue)}
-.rnd-btn.picked-red{background:var(--red-bg);color:var(--red);border-color:var(--red)}
-.scorecard{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
-.score-chip{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;padding:4px 14px;border-radius:8px}
-.score-blue{background:var(--blue-bg);color:var(--blue)}
-.score-red{background:var(--red-bg);color:var(--red)}
-.score-label{font-size:10px;color:var(--text3)}
 /* SECTION */
 .section{margin-bottom:1rem}
 .section-title{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--border)}
@@ -131,6 +67,47 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .bl .bf{height:100%;border-radius:3px;background:var(--blue);float:right}
 .br .bf{height:100%;border-radius:3px;background:var(--red)}
 .adv-l{color:var(--blue)}.adv-r{color:var(--red)}
+/* WIN METHOD */
+.wm-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
+.wm-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.wm-label{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.wm-pick{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.04em;padding:3px 12px;border-radius:20px}
+.wm-ko{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.wm-sub{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.wm-dec{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.wm-reason{font-size:12px;color:var(--text2);line-height:1.6}
+/* ODDS */
+.odds-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
+.odds-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.odds-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.odds-meta{display:flex;align-items:center;gap:8px}
+.dk-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(98,203,93,.12);color:#62cb5d;border:1px solid rgba(98,203,93,.2);letter-spacing:.04em}
+.odds-updated{font-size:9px;color:var(--text3)}
+.odds-refresh-btn{font-size:10px;padding:3px 9px;border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:6px;cursor:pointer;font-family:'Barlow',sans-serif}
+.odds-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.odds-card{background:var(--bg4);border-radius:10px;padding:10px 12px;text-align:center}
+.odds-fighter{font-size:11px;color:var(--text2);margin-bottom:4px}
+.odds-line{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1}
+.odds-fav{color:var(--red)}.odds-dog{color:var(--gold)}
+.odds-implied{font-size:10px;color:var(--text3);margin-top:3px}
+.odds-props{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.odds-prop{font-size:10px;padding:3px 8px;border-radius:4px;background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
+/* PROB */
+.prob-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.prob-card{background:var(--bg4);border-radius:10px;padding:12px;text-align:center}
+.prob-pct{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;line-height:1;margin-bottom:3px}
+.prob-name{font-size:11px;color:var(--text2)}
+.prob-pct-blue{color:var(--blue)}.prob-pct-red{color:var(--red)}
+.prob-bar-track{height:6px;border-radius:4px;background:var(--bg4);overflow:hidden;display:flex;margin-bottom:4px}
+.pb-blue{background:var(--blue);height:100%}.pb-red{background:var(--red);height:100%}
+.prob-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+/* FINISH */
+.finish-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.finish-card{background:var(--bg4);border-radius:10px;padding:10px 12px}
+.finish-card h4{font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+.finish-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.finish-type{font-size:11px;color:var(--text2)}.finish-val{font-size:12px;font-weight:500}
+.finish-rate-row{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;justify-content:space-between}
 /* TALENT */
 .talent-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
 .talent-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -157,55 +134,11 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .win-dot-blue{background:var(--blue)}.win-dot-red{background:var(--red)}
 .win-name{font-size:11px;color:var(--text);line-height:1.3}
 .win-detail{font-size:10px;color:var(--text3)}
-.hof-badge{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.2);color:var(--gold);border:1px solid rgba(245,158,11,.3);margin-left:4px;vertical-align:middle}
-.champ-badge{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,.25);margin-left:4px;vertical-align:middle}
+.hof-badge,.champ-badge{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle}
+.hof-badge{background:rgba(245,158,11,.2);color:var(--gold);border:1px solid rgba(245,158,11,.3)}
+.champ-badge{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,.25)}
 .no-wins{font-size:11px;color:var(--text3);font-style:italic}
-/* PROB */
-.prob-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.prob-card{background:var(--bg4);border-radius:10px;padding:12px;text-align:center}
-.prob-pct{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;line-height:1;margin-bottom:3px}
-.prob-name{font-size:11px;color:var(--text2)}
-.prob-pct-blue{color:var(--blue)}.prob-pct-red{color:var(--red)}
-.prob-bar-track{height:6px;border-radius:4px;background:var(--bg4);overflow:hidden;display:flex;margin-bottom:4px}
-.pb-blue{background:var(--blue);height:100%}.pb-red{background:var(--red);height:100%}
-.prob-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:1rem}
-/* WM BOX */
-.wm-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
-.wm-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
-.wm-label{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
-.wm-pick{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.04em;padding:3px 12px;border-radius:20px}
-.wm-ko{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
-.wm-sub{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
-.wm-dec{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2)}
-.wm-tko{background:var(--amber-bg);color:var(--gold);border:1px solid rgba(245,158,11,.2)}
-.wm-reason{font-size:12px;color:var(--text2);line-height:1.6}
-/* FINISH GRID */
-.finish-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.finish-card{background:var(--bg4);border-radius:10px;padding:10px 12px}
-.finish-card h4{font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
-.finish-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
-.finish-type{font-size:11px;color:var(--text2)}.finish-val{font-size:12px;font-weight:500}
-.finish-rate-row{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:flex;justify-content:space-between}
-/* ANALYSIS */
-.analysis-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px}
-.analysis-edge{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.03em;margin-bottom:8px}
-.analysis-p{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:5px}
-.deep-btn{margin-top:10px;padding:8px 18px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:'Barlow',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.02em}
-.deep-btn:hover{background:var(--blue);color:#fff}
-.deep-btn:disabled{opacity:.5;cursor:not-allowed}
-.ai-panel{margin-top:14px;border-top:1px solid var(--border);padding-top:14px}
-.ai-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.ai-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
-.ai-model-badge{font-size:9px;padding:2px 7px;border-radius:4px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
-.ai-content{font-size:13px;color:var(--text2);line-height:1.75;white-space:pre-wrap}
-.ai-content strong{color:var(--text);font-weight:600}
-.ai-thinking{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)}
-.ai-thinking-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--blue);margin:0 2px;animation:dotpulse 1.2s infinite}
-.ai-thinking-dots span:nth-child(2){animation-delay:.2s}
-.ai-thinking-dots span:nth-child(3){animation-delay:.4s}
-@keyframes dotpulse{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-.ai-error{font-size:12px;color:var(--red);padding:8px 12px;background:var(--red-bg);border-radius:8px;border:1px solid rgba(239,68,68,.2)}
-/* PREDICT TRACKER */
+/* TRACKER */
 .tracker-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
 .tracker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
 .tracker-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
@@ -214,159 +147,161 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .tstat-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700}
 .tstat-label{font-size:9px;color:var(--text3);margin-top:2px}
 .model-pick-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg4);border-radius:8px;padding:10px 12px;margin-bottom:10px;flex-wrap:wrap;gap:8px}
-.model-pick-label{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase}
-.model-pick-fighter{font-size:13px;font-weight:600}
-.model-pick-pct{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700}
-.result-btns{display:flex;gap:6px;flex-wrap:wrap}
+.result-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .res-btn{flex:1;min-width:90px;padding:8px 12px;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;font-family:'Barlow',sans-serif;transition:all .15s;border:1px solid var(--border2);background:transparent;color:var(--text2)}
 .res-btn-correct{border-color:var(--green);color:var(--green);background:var(--green-bg)}
-.res-btn-correct:hover{background:var(--green);color:#fff}
 .res-btn-wrong{border-color:var(--red);color:var(--red);background:var(--red-bg)}
-.res-btn-wrong:hover{background:var(--red);color:#fff}
 .tracker-log{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .log-title{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
 .log-entry{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
 .log-entry:last-child{border-bottom:none}
 .log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.log-dot-correct{background:var(--green)}
-.log-dot-wrong{background:var(--red)}
+.log-dot-correct{background:var(--green)}.log-dot-wrong{background:var(--red)}
 .log-fight{flex:1;color:var(--text2);line-height:1.3}
 .log-pick{font-size:10px;color:var(--text3)}
 .log-pct{font-size:10px;font-weight:600;white-space:nowrap}
-.log-pct-correct{color:var(--green)}
-.log-pct-wrong{color:var(--red)}
-.clear-log-btn{font-size:10px;padding:2px 8px;border:1px solid var(--border2);background:transparent;color:var(--text3);border-radius:6px;cursor:pointer;font-family:'Barlow',sans-serif}
-.clear-log-btn:hover{color:var(--red);border-color:var(--red)}
+.log-pct-correct{color:var(--green)}.log-pct-wrong{color:var(--red)}
+.clear-log-btn{font-size:10px;padding:2px 8px;border:1px solid var(--border2);background:transparent;color:var(--text3);border-radius:6px;cursor:pointer}
+/* ROUND TRACKER */
+.rounds-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
+.rounds-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rounds-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.rounds-clear{font-size:10px;padding:3px 9px;border:1px solid var(--border2);background:transparent;color:var(--text3);border-radius:6px;cursor:pointer}
+.round-row{display:grid;grid-template-columns:40px 1fr auto 1fr 40px;align-items:center;gap:6px;padding:7px 10px;background:var(--bg4);border-radius:8px;margin-bottom:4px}
+.rnd-label{font-size:11px;font-weight:600;color:var(--text3);text-align:center}
+.rnd-input{width:50px;padding:4px 6px;font-size:12px;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:6px;text-align:center;font-family:'Barlow',sans-serif}
+.rnd-input:focus{outline:none;border-color:var(--blue)}
+.rnd-winner-btns{display:flex;gap:4px;justify-content:center}
+.rnd-btn{font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'Barlow',sans-serif;transition:all .12s}
+.rnd-btn.picked-blue{background:var(--blue-bg);color:var(--blue);border-color:var(--blue)}
+.rnd-btn.picked-red{background:var(--red-bg);color:var(--red);border-color:var(--red)}
+.scorecard{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.score-chip{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;padding:4px 14px;border-radius:8px}
+.score-blue{background:var(--blue-bg);color:var(--blue)}
+.score-red{background:var(--red-bg);color:var(--red)}
+.score-label{font-size:10px;color:var(--text3)}
+/* ANALYSIS */
+.analysis-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem}
+.analysis-edge{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.03em;margin-bottom:8px}
+.analysis-p{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:5px}
+.deep-btn{margin-top:10px;padding:8px 18px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--blue);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-family:'Barlow',sans-serif;display:inline-flex;align-items:center;gap:6px}
+.deep-btn:hover{background:var(--blue);color:#fff}
+.deep-btn:disabled{opacity:.5;cursor:not-allowed}
+.ai-content{font-size:13px;color:var(--text2);line-height:1.75;margin-top:12px}
+.ai-content strong{color:var(--text);font-weight:600}
+.ai-thinking{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-top:10px}
 /* ROSTER */
 .roster-controls{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
 .rsearch-wrap{flex:1;min-width:160px;position:relative}
 .rsearch-wrap input{width:100%;padding:9px 12px 9px 32px;font-size:13px;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:10px;font-family:'Barlow',sans-serif}
 .rsearch-wrap input:focus{outline:none;border-color:var(--blue)}
 .rsearch-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
-.div-filter{padding:9px 12px;font-size:12px;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:10px;font-family:'Barlow',sans-serif;cursor:pointer;min-width:130px}
-.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:7px;margin-bottom:1rem;max-height:400px;overflow-y:auto;padding-right:4px}
-.roster-grid::-webkit-scrollbar{width:4px}
-.roster-grid::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.div-filter{padding:9px 12px;font-size:12px;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:10px;font-family:'Barlow',sans-serif;cursor:pointer}
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:7px;margin-bottom:1rem;max-height:400px;overflow-y:auto}
 .fighter-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 11px;cursor:pointer;transition:all .15s;user-select:none}
 .fighter-card:hover{border-color:var(--border2);background:var(--bg4)}
 .fighter-card.sel-blue{border-color:var(--blue);background:var(--blue-bg)}
 .fighter-card.sel-red{border-color:var(--red);background:var(--red-bg)}
 .fc-name{font-size:12px;font-weight:500;line-height:1.3;margin-bottom:3px}
 .fc-rec{font-size:10px;color:var(--text3);margin-bottom:2px}
-.fc-div{font-size:9px;color:var(--text3);letter-spacing:.04em}
+.fc-div{font-size:9px;color:var(--text3)}
 .fc-champ{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.2);color:var(--gold);border:1px solid rgba(245,158,11,.3);margin-left:3px}
 .roster-sel-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:1rem}
 .sel-empty{font-size:12px;color:var(--text3);font-style:italic}
-.roster-compare-btn{width:100%;padding:11px;font-size:14px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.06em;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:1rem}
-.roster-compare-btn:hover{background:var(--blue-dim)}
+.roster-compare-btn{width:100%;padding:11px;font-size:14px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.06em;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;margin-bottom:1rem}
 .roster-compare-btn:disabled{opacity:.4;cursor:not-allowed}
-.no-results{font-size:13px;color:var(--text3);text-align:center;padding:2rem;font-style:italic}
 /* CUSTOM */
 .custom-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
 .custom-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px}
 .custom-card h4{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.04em;margin-bottom:12px}
 .input-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
-.input-row label{font-size:10px;color:var(--text3);letter-spacing:.04em}
-.input-row input{padding:6px 9px;font-size:12px;background:var(--bg4);color:var(--text);border:1px solid var(--border);border-radius:7px;font-family:'Barlow',sans-serif;transition:border-color .15s}
+.input-row label{font-size:10px;color:var(--text3)}
+.input-row input{padding:6px 9px;font-size:12px;background:var(--bg4);color:var(--text);border:1px solid var(--border);border-radius:7px;font-family:'Barlow',sans-serif}
 .input-row input:focus{outline:none;border-color:var(--blue)}
-.compare-btn{width:100%;padding:11px;font-size:14px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;transition:background .15s}
-.compare-btn:hover{background:var(--blue-dim)}
+.compare-btn{width:100%;padding:11px;font-size:14px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:.05em;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer}
+/* VENUE BANNER */
+.venue-banner{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.venue-item{font-size:11px;color:var(--text3)}
+.venue-item strong{color:var(--text2);font-weight:500}
 /* KEY MODAL */
 #keyModal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem}
-/* FOOTER */
-.footer{text-align:center;padding:1.5rem 1rem;font-size:11px;color:var(--text3);border-top:1px solid var(--border);margin-top:2rem;max-width:760px;margin-left:auto;margin-right:auto}
-/* MOBILE */
 @media(max-width:520px){
   .custom-grid{grid-template-columns:1fr}
   .vs-bar{grid-template-columns:1fr 48px 1fr;padding:10px;gap:6px}
   .f-name{font-size:13px}
-  .stat-row{grid-template-columns:1fr 90px 1fr}
-  .bar-row{grid-template-columns:1fr 90px 1fr}
-  .tracker-stats{grid-template-columns:repeat(2,1fr)}
+  .stat-row,.bar-row{grid-template-columns:1fr 80px 1fr}
 }
 </style>
 </head>
 <body>
+
 <header class="hdr">
   <div class="hdr-inner">
     <div style="display:flex;align-items:center;gap:10px">
       <div class="logo">UFC<span>Stats</span></div>
-      <div class="live-badge"><span class="live-dot"></span>LIVE</div>
     </div>
-    <div class="hdr-right">
-      <div id="accChip" class="acc-chip" title="App prediction accuracy">
-        <span>Accuracy</span><span class="acc-pct" id="accPct">—</span>
-      </div>
-      <div class="event-info">FN 271 · Seattle</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="acc-chip" id="accChip" title="Model accuracy">Accuracy <span class="acc-pct" id="accPct">—</span></div>
       <button class="key-btn" onclick="promptKey()">⚙ API Key</button>
     </div>
   </div>
 </header>
 
 <main class="main">
-  <!-- MASTER NAVIGATION DROPDOWN -->
-  <div class="sel-section" style="margin-bottom:1rem">
-    <div class="sel-wrap">
-      <select id="masterNav" onchange="handleNav(this.value)">
-        <optgroup label="── LIVE ──">
-          <option value="live">📡 Live Card — ESPN Real-Time</option>
-        </optgroup>
-        <optgroup label="── UFC FIGHT NIGHT 271 · SEATTLE · MAR 28 ──">
-          <option value="fn271_main" disabled style="color:#5a5a65;font-size:11px">── MAIN CARD · 8 PM ET ──</option>
-          <option value="fight_0">🏆 MW Main Event — Adesanya vs. Pyfer · 8 PM ET</option>
-          <option value="fight_1">W. Flyweight Co-Main — Grasso vs. Barber · 8 PM ET</option>
-          <option value="fight_2">Welterweight — Chiesa vs. Price · 8 PM ET</option>
-          <option value="fight_3">Featherweight — Erosa vs. Douglas · 8 PM ET</option>
-          <option value="fight_4">Middleweight — Abdul-Malik vs. Belgaroui · 8 PM ET</option>
-          <option value="fight_5">Lightweight — McKinney vs. Nelson · 8 PM ET</option>
-          <option value="fn271_pre" disabled style="color:#5a5a65;font-size:11px">── PRELIMINARY CARD · 5 PM ET ──</option>
-          <option value="fight_6">Featured Prelim · LW — Bahamondes vs. Musayev · 5 PM ET</option>
-          <option value="fight_7">Lightweight — Hooper vs. Gibson Jr. · 5 PM ET</option>
-          <option value="fight_8">Heavyweight — Tybura vs. Fortune · 5 PM ET</option>
-          <option value="fight_9">W. Flyweight — O'Neill vs. Fernandes · 5 PM ET</option>
-          <option value="fight_10">Light Heavyweight — Stirling vs. Lopes · 5 PM ET</option>
-          <option value="fight_11">Bantamweight — Simon vs. Yanez · 5 PM ET</option>
-          <option value="fight_12">W. Strawweight — Thainara vs. Brasil · 5 PM ET</option>
-        </optgroup>
-        <optgroup label="── ROSTER MATCHUP ──">
-          <option value="roster">👥 UFC Roster — Pick Any Two Fighters</option>
-        </optgroup>
-        <optgroup label="── CUSTOM ──">
-          <option value="custom">⚙ Custom Fighter Builder</option>
-        </optgroup>
-      </select>
-      <div class="chevron">▼</div>
-    </div>
+
+  <!-- MASTER DROPDOWN -->
+  <div class="nav-wrap">
+    <select id="masterNav" onchange="handleNav(this.value)">
+      <optgroup label="── LIVE CARD ──">
+        <option value="live">📡 UFC Fight Night 271 — Live Card</option>
+      </optgroup>
+      <optgroup label="── FN 271 · MAIN CARD · 8 PM ET ──">
+        <option value="fight_0">🏆 Adesanya vs. Pyfer — MW Main Event</option>
+        <option value="fight_1">Grasso vs. Barber — W. Flyweight</option>
+        <option value="fight_2">Chiesa vs. Price — Welterweight</option>
+        <option value="fight_3">Erosa vs. Douglas — Featherweight</option>
+        <option value="fight_4">Abdul-Malik vs. Belgaroui — Middleweight</option>
+        <option value="fight_5">McKinney vs. Nelson — Lightweight</option>
+      </optgroup>
+      <optgroup label="── FN 271 · PRELIM CARD · 5 PM ET ──">
+        <option value="fight_6">Bahamondes vs. Musayev — Lightweight</option>
+        <option value="fight_7">Hooper vs. Gibson Jr. — Lightweight</option>
+        <option value="fight_8">Tybura vs. Fortune — Heavyweight</option>
+        <option value="fight_9">O'Neill vs. Fernandes — W. Flyweight</option>
+        <option value="fight_10">Stirling vs. Lopes — Light Heavyweight</option>
+        <option value="fight_11">Simon vs. Yanez — Bantamweight</option>
+        <option value="fight_12">Thainara vs. Brasil — W. Strawweight</option>
+      </optgroup>
+      <optgroup label="── ROSTER ──">
+        <option value="roster">👥 Roster Matchup — Pick Any Two</option>
+      </optgroup>
+      <optgroup label="── CUSTOM ──">
+        <option value="custom">⚙ Custom Fighter Builder</option>
+      </optgroup>
+    </select>
+    <div class="nav-chevron">▼</div>
   </div>
 
-  <!-- LIVE CARD PANEL -->
-  <div id="liveTab">
-    <div class="espn-strip">
-      <div class="espn-header">
-        <span class="espn-title">ESPN Live — UFC Fight Night 271</span>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span class="espn-badge" id="espnBadge">ESPN API</span>
-          <button class="espn-refresh-btn" onclick="fetchESPN()">↻ Refresh</button>
-        </div>
-      </div>
-      <div id="espnNote" style="font-size:10px;color:var(--text3);margin-bottom:6px;display:none"></div>
-      <div id="espnFights" class="espn-fights">
-        <div class="espn-loading">Loading from ESPN…</div>
-      </div>
+  <!-- LIVE PANEL -->
+  <div id="livePanel">
+    <div style="margin-bottom:1rem">
+      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">MAIN CARD · 8 PM ET</div>
+      <div class="fight-list" id="mainList"></div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:14px 0 8px">PRELIMINARY CARD · 5 PM ET</div>
+      <div class="fight-list" id="prelimList"></div>
     </div>
-    <div id="liveVenueBanner"></div>
-    <div id="liveCompare"></div>
+    <div id="liveContent"></div>
   </div>
 
-  <!-- FN271 FIGHT PANEL -->
-  <div id="cardTab" style="display:none">
-    <div id="venueBanner"></div>
+  <!-- CARD PANEL (direct fight from dropdown) -->
+  <div id="cardPanel">
+    <div class="venue-banner" id="venueBanner"></div>
     <div id="fightDisplay"></div>
   </div>
 
-  <!-- ROSTER TAB -->
-  <div id="rosterTab" style="display:none">
-    <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Search fighters · tap to select Blue then Red corner</p>
+  <!-- ROSTER PANEL -->
+  <div id="rosterPanel">
+    <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Tap a fighter for Blue corner, then tap another for Red corner</p>
     <div class="roster-controls">
       <div class="rsearch-wrap">
         <span class="rsearch-icon">⌕</span>
@@ -393,7 +328,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div id="selBlueDisplay" class="sel-empty">Tap a fighter</div>
       </div>
       <div style="text-align:center">
-        <div class="vs-pill" style="font-size:12px">VS</div>
+        <div style="background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--text2)">VS</div>
       </div>
       <div style="text-align:left">
         <div style="font-size:9px;color:var(--red);font-weight:600;letter-spacing:.07em;margin-bottom:3px">RED</div>
@@ -405,8 +340,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
     <div id="rosterResult"></div>
   </div>
 
-  <!-- CUSTOM TAB -->
-  <div id="customTab" style="display:none">
+  <!-- CUSTOM PANEL -->
+  <div id="customPanel">
     <div class="custom-grid">
       <div class="custom-card">
         <h4 style="color:var(--blue)">🔵 Blue Corner</h4>
@@ -421,7 +356,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="input-row"><label>KO wins</label><input id="ca-ko" type="number" value="8"/></div>
         <div class="input-row"><label>Sub wins</label><input id="ca-sub" type="number" value="4"/></div>
         <div class="input-row"><label>Dec wins</label><input id="ca-dec" type="number" value="8"/></div>
-        <div class="input-row"><label>Form (W W L…)</label><input id="ca-form" value="W W L W W"/></div>
+        <div class="input-row"><label>Recent form</label><input id="ca-form" value="W W L W W"/></div>
         <div class="input-row"><label>Style</label><input id="ca-style" value="Striking / BJJ"/></div>
       </div>
       <div class="custom-card">
@@ -437,42 +372,17 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="input-row"><label>KO wins</label><input id="cb-ko" type="number" value="10"/></div>
         <div class="input-row"><label>Sub wins</label><input id="cb-sub" type="number" value="2"/></div>
         <div class="input-row"><label>Dec wins</label><input id="cb-dec" type="number" value="6"/></div>
-        <div class="input-row"><label>Form (W W L…)</label><input id="cb-form" value="W L W W L"/></div>
+        <div class="input-row"><label>Recent form</label><input id="cb-form" value="W L W W L"/></div>
         <div class="input-row"><label>Style</label><input id="cb-style" value="Wrestling / Striking"/></div>
       </div>
     </div>
     <button class="compare-btn" onclick="runCustom()">COMPARE FIGHTERS →</button>
     <div id="customResult" style="margin-top:1.25rem"></div>
   </div>
+
 </main>
-<footer class="footer">UFCStats · ESPN API · DraftKings Odds · UFC Fight Night 271 · Seattle, WA · Mar 28, 2026</footer>
 
 <script>
-// ═══════════════════════════════════════════════════
-// VENUE DATA
-// ═══════════════════════════════════════════════════
-const VENUE = {
-  name: 'Climate Pledge Arena',
-  city: 'Seattle, WA',
-  altitude: 175, // feet above sea level — very low, near sea level
-  tempF: 52,     // typical Seattle late-March indoor temp
-  octagon: '30ft diameter (standard)',
-  size: 30,
-  indoor: true,
-  notes: 'Near sea-level altitude (175ft). Indoor controlled environment. No altitude fatigue factor.'
-};
-
-// altitude modifier: sea level = neutral, high altitude = stamina penalty late rounds
-function venueModifier(fighter) {
-  // Seattle is near sea-level — no meaningful altitude effect
-  const altEffect = VENUE.altitude < 500 ? 0 : VENUE.altitude < 2000 ? -2 : -5;
-  // Octagon size: 30ft is standard — no modifier
-  return altEffect;
-}
-
-// ═══════════════════════════════════════════════════
-// FIGHT DATA — FN 271
-// ═══════════════════════════════════════════════════
 const FIGHTS = [
   {label:"Middleweight · Main Event · 5 rds · 8 PM ET",card:"MAIN",espnId:"401838359",
    startET:"8:00 PM ET",
@@ -554,9 +464,6 @@ const FIGHTS = [
    wm:{pick:"Thainara Submission",method:"sub",reason:"Bigger, stronger, more complete. BJJ + physicality = Rd 2 finish."}}
 ];
 
-// ═══════════════════════════════════════════════════
-// ROSTER DATABASE
-// ═══════════════════════════════════════════════════
 const ROSTER=[
   {name:"Tom Aspinall",div:"Heavyweight",rec:"15-3",rank:"C",age:31,reach:78,stance:"Orthodox",style:"Kickboxing / Wrestling",slpm:4.5,sacc:55,sdef:63,tdavg:1.2,tdacc:45,tddef:72,subavg:0.4,ko:7,sub:3,dec:5,form:"W W W W W",champ:true,talent:{tier:"elite",striking:5,grappling:3,cardio:4,chin:4,wrestling:3,overall:5},wins:[]},
   {name:"Ciryl Gane",div:"Heavyweight",rec:"13-2",rank:"#1",age:34,reach:84,stance:"Orthodox",style:"Muay Thai / Footwork",slpm:5.1,sacc:54,sdef:70,tdavg:0.5,tdacc:35,tddef:82,subavg:0.1,ko:6,sub:1,dec:6,form:"W L W W W",champ:false,talent:{tier:"elite",striking:5,grappling:2,cardio:4,chin:3,wrestling:2,overall:4},wins:[]},
@@ -603,586 +510,226 @@ const ROSTER=[
   {name:"Tatiana Suarez",div:"Women's Strawweight",rec:"11-0",rank:"#1",age:31,reach:64,stance:"Orthodox",style:"Wrestling / GnP",slpm:2.5,sacc:44,sdef:62,tdavg:5.0,tdacc:60,tddef:78,subavg:1.0,ko:2,sub:4,dec:5,form:"W W W W W",champ:false,talent:{tier:"elite",striking:2,grappling:4,cardio:5,chin:4,wrestling:5,overall:5},wins:[]}
 ];
 
-// ═══════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════
-// WIN PROBABILITY TRACKER
-// Tracks how often the model's top-probability pick wins
-// ═══════════════════════════════════════════════════
-function loadTracker(){
-  return JSON.parse(localStorage.getItem('ufcProbTracker')||'{"correct":0,"total":0,"log":[]}');
-}
-function saveTracker(t){localStorage.setItem('ufcProbTracker',JSON.stringify(t));}
 
+// ── VENUE ──────────────────────────────────────────
+var VENUE = {name:'Climate Pledge Arena',city:'Seattle, WA',altitude:175,tempF:52,octagon:'30ft (standard)'};
+
+// ── TRACKER ────────────────────────────────────────
+function loadTracker(){try{return JSON.parse(localStorage.getItem('ufcProbTracker')||'{"correct":0,"total":0,"log":[]}')}catch(e){return{correct:0,total:0,log:[]};}}
+function saveTracker(t){try{localStorage.setItem('ufcProbTracker',JSON.stringify(t));}catch(e){}}
 function updateAccChip(){
-  const t=loadTracker();
-  const pct=t.total>0?Math.round(t.correct/t.total*100)+'%':'—';
+  var t=loadTracker();
+  var pct=t.total>0?Math.round(t.correct/t.total*100)+'%':'—';
   document.getElementById('accPct').textContent=pct;
-  document.getElementById('accChip').title=
-    `Model accuracy: ${t.correct} correct / ${t.total} fights logged`;
 }
-
-function logModelResult(correct, fightLabel, modelPick, modelPct, actualWinner){
-  const t=loadTracker();
-  t.total++;
-  if(correct) t.correct++;
-  t.log.unshift({
-    correct,
-    label: fightLabel,
-    modelPick,
-    modelPct,
-    actualWinner,
-    date: new Date().toLocaleDateString()
-  });
-  if(t.log.length>100) t.log=t.log.slice(0,100);
-  saveTracker(t);
-  updateAccChip();
+function logModelResult(correct,label,modelPick,modelPct,actualWinner){
+  var t=loadTracker();
+  t.total++; if(correct)t.correct++;
+  t.log.unshift({correct:correct,label:label,modelPick:modelPick,modelPct:modelPct,actualWinner:actualWinner,date:new Date().toLocaleDateString()});
+  if(t.log.length>100)t.log=t.log.slice(0,100);
+  saveTracker(t); updateAccChip();
 }
-
-// ═══════════════════════════════════════════════════
-// AUTO-TRACK FROM ESPN RESULTS
-// Watches ESPN data for completed fights, matches by espnId,
-// compares actual winner to model's top-probability pick,
-// and logs the result automatically — no user input needed.
-// ═══════════════════════════════════════════════════
-function autoTrackFromESPN(data){
-  if(!data||!data.events||!data.events.length) return;
-
-  const event = data.events[0];
-  const comps  = event.competitions || [];
-  const t      = loadTracker();
-
-  // Build a set of already-logged espnIds so we never double-count
-  const logged = new Set(t.log.map(e => e.espnId).filter(Boolean));
-
-  let newEntries = 0;
-
-  comps.forEach(comp => {
-    const espnCompId = comp.id;
-    const status     = comp.status && comp.status.type;
-    const isDone     = status && (status.state === 'post' || status.completed === true);
-
-    if(!isDone) return;                    // fight not over yet
-    if(logged.has(espnCompId)) return;     // already recorded
-
-    // Find matching fight in our FIGHTS array
-    const fightIdx = FIGHTS.findIndex(f => f.espnId === espnCompId);
-    if(fightIdx < 0) return;               // no match — not on our card
-
-    const fight = FIGHTS[fightIdx];
-
-    // Identify ESPN winner — competitor with winner:true
-    const competitors = comp.competitors || [];
-    const winnerComp  = competitors.find(c => c.winner === true);
-    if(!winnerComp) return;                // ESPN hasn't set a winner yet
-
-    const winnerFullName = winnerComp.athlete && winnerComp.athlete.fullName;
-    if(!winnerFullName) return;
-
-    // Determine which of our fighters maps to the ESPN winner
-    // Match by last name (most reliable without a full name DB)
-    const aLastName = fight.a.name.split(' ').slice(-1)[0].toLowerCase();
-    const bLastName = fight.b.name.split(' ').slice(-1)[0].toLowerCase();
-    const espnLast  = winnerFullName.split(' ').slice(-1)[0].toLowerCase();
-
-    let actualFighter = null;
-    if(espnLast === aLastName || winnerFullName.toLowerCase().includes(aLastName)){
-      actualFighter = fight.a;
-    } else if(espnLast === bLastName || winnerFullName.toLowerCase().includes(bLastName)){
-      actualFighter = fight.b;
-    } else {
-      // Fallback: partial match on first name
-      const espnFirst = winnerFullName.split(' ')[0].toLowerCase();
-      if(fight.a.name.toLowerCase().includes(espnFirst)) actualFighter = fight.a;
-      else if(fight.b.name.toLowerCase().includes(espnFirst)) actualFighter = fight.b;
-    }
-
-    if(!actualFighter) return; // couldn't match — skip
-
-    // Compute model pick for this fight
-    const prob = calcProb(fight.a, fight.b);
-    const modelWinner   = prob[0] >= prob[1] ? fight.a : fight.b;
-    const modelWinPct   = Math.max(prob[0], prob[1]);
-    const wasCorrect    = actualFighter.name === modelWinner.name;
-    const fightLabel    = fight.label.split('·')[0].trim();
-    const actualName    = actualFighter.name.split(' ').slice(-1)[0];
-    const modelPickName = modelWinner.name.split(' ').slice(-1)[0];
-
-    // Log the result
-    t.total++;
-    if(wasCorrect) t.correct++;
-    t.log.unshift({
-      correct:      wasCorrect,
-      label:        fightLabel,
-      modelPick:    modelPickName,
-      modelPct:     modelWinPct,
-      actualWinner: actualName,
-      espnId:       espnCompId,
-      auto:         true,          // flag: auto-logged from ESPN
-      date:         new Date().toLocaleDateString()
-    });
-    newEntries++;
-  });
-
-  if(newEntries > 0){
-    if(t.log.length > 100) t.log = t.log.slice(0, 100);
-    saveTracker(t);
-    updateAccChip();
-
-    // Refresh tracker display in any currently-visible fight card
-    const logEl = document.getElementById('trackerLogDisplay');
-    if(logEl) logEl.innerHTML = renderTrackerLog();
-
-    // Also refresh the stat boxes if visible
-    ['correct','total'].forEach(k => {
-      const els = document.querySelectorAll('.tstat-num');
-      // Re-render the active fight card to show updated stats
-    });
-
-    // Re-render active fight card tracker section
-    const nav = document.getElementById('masterNav');
-    if(nav && nav.value.startsWith('fight_')){
-      const idx = parseInt(nav.value.replace('fight_',''));
-      // Only re-render tracker portion — refresh full card
-      selectFight(idx);
-    }
-
-    console.log('Auto-tracked '+newEntries+' fight result(s) from ESPN');
-  }
-}
-
-function clearTrackerLog(){
-  if(!confirm('Clear all prediction history?')) return;
-  localStorage.removeItem('ufcProbTracker');
-  updateAccChip();
-  // Re-render current fight to refresh tracker UI
-  const nav=document.getElementById('masterNav');
-  if(nav&&nav.value.startsWith('fight_')){
-    const idx=parseInt(nav.value.replace('fight_',''));
-    selectFight(idx);
-  }
-}
-
 function renderTrackerLog(){
-  const t=loadTracker();
-  if(!t.log.length) return '<div style="font-size:11px;color:var(--text3);font-style:italic;padding:6px 0">No results yet — tracker auto-updates when ESPN marks fights complete</div>';
-  return t.log.slice(0,10).map(e=>{
-    const autoBadge = e.auto
-      ? '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.2);margin-left:4px;font-weight:600;letter-spacing:.04em">ESPN</span>'
-      : '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(160,160,168,.1);color:var(--text3);border:1px solid var(--border);margin-left:4px">manual</span>';
-    const resultWord = e.correct
-      ? '<span style="color:var(--green);font-weight:600">✓ Correct</span>'
-      : '<span style="color:var(--red);font-weight:600">✗ Wrong</span>';
-    return `<div class="log-entry">
-      <div class="log-dot ${e.correct?'log-dot-correct':'log-dot-wrong'}"></div>
-      <div class="log-fight">
-        <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap">
-          <span>${e.label||'Fight'}</span>${autoBadge}
-        </div>
-        <div class="log-pick">
-          ${resultWord} &nbsp;·&nbsp;
-          Picked: <strong style="color:var(--text)">${e.modelPick}</strong>
-          &nbsp;·&nbsp; Won: <strong style="color:var(--text)">${e.actualWinner||'?'}</strong>
-        </div>
-      </div>
-      <div class="log-pct ${e.correct?'log-pct-correct':'log-pct-wrong'}">${e.modelPct}%</div>
-    </div>`;
+  var t=loadTracker();
+  if(!t.log.length)return '<div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">No results logged yet</div>';
+  return t.log.slice(0,8).map(function(e){
+    return '<div class="log-entry">'
+      +'<div class="log-dot '+(e.correct?'log-dot-correct':'log-dot-wrong')+'"></div>'
+      +'<div class="log-fight"><div>'+e.label+'</div>'
+      +'<div class="log-pick">Picked: <strong>'+e.modelPick+'</strong> · Won: <strong>'+e.actualWinner+'</strong></div></div>'
+      +'<div class="log-pct '+(e.correct?'log-pct-correct':'log-pct-wrong')+'">'+e.modelPct+'%</div>'
+      +'</div>';
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════
-// ROUND TRACKER STATE
-// ═══════════════════════════════════════════════════
-const roundData={};
-function getRoundKey(fightIdx){return 'fight_'+fightIdx;}
-function initRounds(fightIdx,numRounds){
-  const k=getRoundKey(fightIdx);
-  if(!roundData[k])roundData[k]=Array.from({length:numRounds},()=>({aStrikes:'',bStrikes:'',winner:null}));
-}
+// ── ROUND TRACKER ──────────────────────────────────
+var roundData={};
+function getRoundKey(fi){return 'fight_'+fi;}
+function initRounds(fi,n){var k=getRoundKey(fi);if(!roundData[k])roundData[k]=[];while(roundData[k].length<n)roundData[k].push({aStrikes:'',bStrikes:'',winner:null});}
 
-// ═══════════════════════════════════════════════════
-// ESPN API FETCH
-// ═══════════════════════════════════════════════════
-const ESPN_PROXY='/api/espn';
-let espnData=null;
-let espnInterval=null;
-
-async function fetchESPN(){
-  const el=document.getElementById('espnFights');
-  el.innerHTML='<div class="espn-loading">Loading from ESPN…</div>';
-  try{
-    // Use Vercel proxy to bypass browser CORS on ESPN API
-    const r=await fetch(ESPN_PROXY+'?_='+Date.now());
-    if(!r.ok) throw new Error('Proxy returned '+r.status);
-    const d=await r.json();
-    if(d.error) throw new Error(d.error);
-    espnData=d;
-    renderESPN(d);
-    autoTrackFromESPN(d);
-  }catch(e){
-    // Fallback: show static card data from our FIGHTS array
-    renderStaticCard();
-    const badge=document.getElementById('espnBadge');
-    if(badge){badge.textContent='STATIC';badge.style.background='rgba(245,158,11,.15)';badge.style.color='#f59e0b';badge.style.borderColor='rgba(245,158,11,.3)';}
-    const note=document.getElementById('espnNote');
-    if(note){note.textContent='ESPN live data unavailable — showing scheduled card. Deploy to Vercel to enable live data.';note.style.display='block';}
-  }
-}
-
-function renderStaticCard(){
-  const el=document.getElementById('espnFights');
-  const sorted=[...FIGHTS].sort((a,b)=>(a.card==='MAIN'?0:1)-(b.card==='MAIN'?0:1));
-  let html='';
-  sorted.forEach(function(f){
-    const fi=FIGHTS.indexOf(f);
-    const aLast=f.a.name.split(' ').slice(-1)[0];
-    const bLast=f.b.name.split(' ').slice(-1)[0];
-    const card=f.card==='MAIN'?'MAIN':'PRELIM';
-    html+='<div class="espn-fight" id="srow'+fi+'" style="cursor:pointer;border-color:rgba(59,130,246,.25)">'
-      +'<div class="ef-left"><div class="ef-name">'+aLast+'</div><div class="ef-rec">'+f.a.rec+'</div></div>'
-      +'<div class="ef-center"><div class="ef-time">'+f.startET+'</div><div class="ef-weight">'+card+'</div>'
-      +'<div style="font-size:9px;color:#3b82f6;margin-top:2px">tap for stats</div></div>'
-      +'<div class="ef-right"><div class="ef-name">'+bLast+'</div><div class="ef-rec">'+f.b.rec+'</div></div>'
-      +'</div>';
-  });
-  el.innerHTML=html;
-  // Attach click handlers directly to each row element after they exist in DOM
-  sorted.forEach(function(f){
-    const fi=FIGHTS.indexOf(f);
-    const row=document.getElementById('srow'+fi);
-    if(row) row.addEventListener('click',function(){ selectFromEspn(fi); });
-  });
-}
-
-function renderESPN(d){
-  const el=document.getElementById('espnFights');
-  if(!d||!d.events||!d.events.length){el.innerHTML='<div class="espn-loading">No events found</div>';return;}
-  const event=d.events[0];
-  const comps=event.competitions||[];
-  if(!comps.length){el.innerHTML='<div class="espn-loading">No fights found</div>';return;}
-
-  // Build rows and track which have a matching fight
-  const matchMap={};
-  let html='';
-  comps.forEach(function(c,i){
-    const cs=c.competitors||[];
-    const a=cs.find(function(x){return x.order===1;})||cs[0];
-    const b=cs.find(function(x){return x.order===2;})||cs[1];
-    if(!a||!b) return;
-    const aName=a.athlete.shortName||a.athlete.displayName;
-    const bName=b.athlete.shortName||b.athlete.displayName;
-    const aRec=(a.records&&a.records[0]&&a.records[0].summary)||'';
-    const bRec=(b.records&&b.records[0]&&b.records[0].summary)||'';
-    const status=c.status&&c.status.type;
-    const state=status?status.state:'pre';
-    const detail=(c.status&&c.status.type&&c.status.type.shortDetail)||'Scheduled';
-    const weight=c.type&&c.type.abbreviation||'';
-    const isLive=state==='in';
-    const isDone=state==='post'||(status&&status.completed);
-    const aWon=isDone&&a.winner;
-    const bWon=isDone&&b.winner;
-    const period=c.status&&c.status.period||0;
-    const clock=c.status&&c.status.displayClock||'';
-
-    let statusHtml='';
-    if(isLive) statusHtml='<div class="ef-status" style="color:#ef4444">RD '+period+' '+clock+'</div>';
-    else if(isDone) statusHtml='<div class="ef-status" style="color:#22c55e">Final</div>';
-    else statusHtml='<div class="ef-time">'+detail+'</div>';
-
-    const fIdx=FIGHTS.findIndex(function(f){return f.espnId===c.id;});
-    const hasMatch=fIdx>=0;
-    const rowId='erow'+i;
-    if(hasMatch) matchMap[rowId]=fIdx;
-
-    const borderStyle=hasMatch?'border-color:rgba(59,130,246,.3)':'';
-    const cursorStyle=hasMatch?'cursor:pointer':'';
-    const tapHint=hasMatch?'<div style="font-size:9px;color:#3b82f6;margin-top:2px">tap for stats</div>':'';
-    const liveClass=(isLive?' live-fight':isDone?' completed':'');
-
-    const aWinner=aWon?'<span class="winner-tag">W</span>':'';
-    const bWinner=bWon?'<span class="winner-tag">W</span>':'';
-
-    html+='<div class="espn-fight'+liveClass+'" id="'+rowId+'" style="'+cursorStyle+';'+borderStyle+'">'
-      +'<div class="ef-left"><div class="ef-name">'+aName+aWinner+'</div><div class="ef-rec">'+aRec+'</div></div>'
-      +'<div class="ef-center">'+statusHtml+'<div class="ef-weight">'+weight+'</div>'+tapHint+'</div>'
-      +'<div class="ef-right"><div class="ef-name">'+bName+bWinner+'</div><div class="ef-rec">'+bRec+'</div></div>'
-      +'</div>';
-  });
-
-  el.innerHTML=html;
-
-  // Attach click listeners directly to each row AFTER innerHTML is set
-  Object.keys(matchMap).forEach(function(rowId){
-    const fIdx=matchMap[rowId];
-    const row=document.getElementById(rowId);
-    if(row){
-      row.style.cursor='pointer';
-      row.addEventListener('click',function(){ selectFromEspn(fIdx); });
-    }
-  });
-}
-
-
-// Auto-refresh ESPN every 30s when on live tab
-function startESPNPoll(){if(!espnInterval)espnInterval=setInterval(fetchESPN,30000);}
-function stopESPNPoll(){if(espnInterval){clearInterval(espnInterval);espnInterval=null;}}
-
-// ═══════════════════════════════════════════════════
-// MONEYLINE REFRESH — calls ESPN scoreboard which includes provider odds data
-// ═══════════════════════════════════════════════════
-const oddsCache={};
-async function refreshOdds(fightIdx){
-  const el=document.getElementById('oddsUpdated_'+fightIdx);
-  if(el)el.textContent='Refreshing…';
-  try{
-    const r=await fetch(ESPN_PROXY+'?_='+Date.now());
-    const d=await r.json();
-    // ESPN scoreboard doesn't return per-fight moneyline odds directly accessible without auth
-    // We show a live refresh timestamp and note odds from static DraftKings data
-    const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-    if(el)el.textContent='Updated '+t;
-    // Update odds display with static DK data (live odds require DK API partnership)
-    const fight=FIGHTS[fightIdx];
-    if(fight&&fight.odds){
-      const lineA=document.getElementById('oddsLineA_'+fightIdx);
-      const lineB=document.getElementById('oddsLineB_'+fightIdx);
-      if(lineA)lineA.textContent=fight.odds.aLine;
-      if(lineB)lineB.textContent=fight.odds.bLine;
-    }
-  }catch(e){
-    if(el)el.textContent='Refresh failed';
-  }
-}
-
-// ═══════════════════════════════════════════════════
-// CORE MODEL
-// ═══════════════════════════════════════════════════
-function calcProb(a,b,venueBonus=0){
-  let sA=0,sB=0;
+// ── CALC PROB ──────────────────────────────────────
+function calcProb(a,b){
+  var sA=0,sB=0;
   sA+=a.sacc*.20;sB+=b.sacc*.20;
   sA+=a.sdef*.12;sB+=b.sdef*.12;
   sA+=a.tdacc*.08;sB+=b.tdacc*.08;
   sA+=a.tddef*.08;sB+=b.tddef*.08;
-  const finA=(a.ko+a.sub)/(a.ko+a.sub+a.dec+1)*100;
-  const finB=(b.ko+b.sub)/(b.ko+b.sub+b.dec+1)*100;
+  var finA=(a.ko+a.sub)/(a.ko+a.sub+a.dec+1)*100;
+  var finB=(b.ko+b.sub)/(b.ko+b.sub+b.dec+1)*100;
   sA+=finA*.15;sB+=finB*.15;
   sA+=Math.max(0,35-a.age)*.4;sB+=Math.max(0,35-b.age)*.4;
   sA+=(a.reach||70)*.05;sB+=(b.reach||70)*.05;
-  const fm={W:2,L:-2,D:0};
-  (a.form||'').split(' ').forEach(r=>{sA+=(fm[r]||0);});
-  (b.form||'').split(' ').forEach(r=>{sB+=(fm[r]||0);});
-  // Venue: sea-level = no modifier; octagon size standard = no modifier
-  sA+=venueBonus;
-  const t=sA+sB;
-  const pA=Math.round((sA/t)*100);
+  var fm={W:2,L:-2,D:0};
+  (a.form||'').split(' ').forEach(function(r){sA+=(fm[r]||0);});
+  (b.form||'').split(' ').forEach(function(r){sB+=(fm[r]||0);});
+  var tot=sA+sB;
+  var pA=Math.round((sA/tot)*100);
   return[pA,100-pA];
 }
 
-function bw(va,vb){
-  const mn=Math.min(va,vb),mx=Math.max(va,vb),rng=mx-mn||1;
-  return[Math.round(40+((va-mn)/rng)*55),Math.round(40+((vb-mn)/rng)*55)];
-}
-function wmClass(m){return{ko:'wm-ko',sub:'wm-sub',dec:'wm-dec',tko:'wm-tko'}[m]||'wm-ko';}
-function isFav(l){return l&&l.startsWith('-');}
-function implied(l){if(!l)return'—';const n=parseInt(l);return n<0?Math.round(Math.abs(n)/(Math.abs(n)+100)*100)+'%':Math.round(100/(n+100)*100)+'%';}
+function implied(l){if(!l)return'—';var n=parseInt(l);return n<0?Math.round(Math.abs(n)/(Math.abs(n)+100)*100)+'%':Math.round(100/(n+100)*100)+'%';}
 
-function statRow(lbl,va,vb,higher=true,isText=false){
-  const nA=parseFloat(va)||0,nB=parseFloat(vb)||0;
-  let clA='',clB='';
-  if(!isText){if(higher){if(nA>nB)clA='adv-l';else if(nB>nA)clB='adv-r';}else{if(nA<nB)clA='adv-l';else if(nB<nA)clB='adv-r';}}
-  const[bA,bB]=isText?[60,60]:bw(nA,nB);
-  return`<div class="stat-row"><div class="sv-l"><span class="${clA}">${va}</span></div><div class="sl">${lbl}</div><div class="sv-r"><span class="${clB}">${vb}</span></div></div>${isText?'':`<div class="bar-row"><div class="bc bl"><div class="bf" style="width:${bA}%"></div></div><div></div><div class="bc br"><div class="bf" style="width:${bB}%"></div></div></div>`}`;
-}
-
-function stars(n,max=5){
-  let s='';for(let i=1;i<=max;i++)s+=`<div class="star ${i<=n?'star-on':'star-off'}"></div>`;
-  return`<div class="talent-stars">${s}</div>`;
-}
-function tierBadge(t){
-  const m={elite:'tier-elite',contender:'tier-contender',prospect:'tier-prospect',veteran:'tier-veteran',gatekeeper:'tier-gatekeeper'};
-  const l={elite:'ELITE',contender:'CONTENDER',prospect:'PROSPECT',veteran:'VETERAN',gatekeeper:'GATEKEEPER'};
-  return`<span class="tier-badge ${m[t]||'tier-veteran'}">${l[t]||t.toUpperCase()}</span>`;
-}
-
+// ── RENDER COMPARISON ──────────────────────────────
 function renderComp(a,b,wm,label,odds,fightIdx){
-  const prob = calcProb(a,b);
-  const wName = prob[0]>=prob[1] ? a.name.split(' ')[0] : b.name.split(' ')[0];
-  const wCol  = prob[0]>=prob[1] ? 'var(--blue)' : 'var(--red)';
-  const finRateA = Math.round((a.ko+a.sub)/(a.ko+a.sub+a.dec)*100)||0;
-  const finRateB = Math.round((b.ko+b.sub)/(b.ko+b.sub+b.dec)*100)||0;
-  const fIdx = fightIdx!=null ? fightIdx : 'c';
-  const numRounds = (fIdx==='c') ? 3 : (fIdx<2 ? 5 : 3);
-  if(fIdx!=='c') initRounds(fIdx,numRounds);
+  var prob=calcProb(a,b);
+  var fIdx=fightIdx!=null?fightIdx:'c';
+  var numRounds=(fIdx==='c')?3:(fIdx<2?5:3);
+  if(fIdx!=='c')initRounds(fIdx,numRounds);
 
-  // --- ODDS ---
+  var wCol=prob[0]>=prob[1]?'var(--blue)':'var(--red)';
+  var wName=prob[0]>=prob[1]?a.name.split(' ')[0]:b.name.split(' ')[0];
+  var finRateA=Math.round((a.ko+a.sub)/(a.ko+a.sub+a.dec)*100)||0;
+  var finRateB=Math.round((b.ko+b.sub)/(b.ko+b.sub+b.dec)*100)||0;
+
+  // odds
   var oddsHtml='';
   if(odds){
-    var aFav=odds.aLine&&odds.aLine.startsWith('-');
-    var bFav=odds.bLine&&odds.bLine.startsWith('-');
-    var aImpl=implied(odds.aLine), bImpl=implied(odds.bLine);
+    var aFav=odds.aLine&&odds.aLine[0]==='-';
+    var bFav=odds.bLine&&odds.bLine[0]==='-';
     oddsHtml='<div class="odds-box">'
-      +'<div class="odds-header"><span class="odds-title">DraftKings moneyline</span>'
+      +'<div class="odds-header"><span class="odds-title">DraftKings Moneyline</span>'
       +'<div class="odds-meta"><span class="dk-badge">DK LIVE</span>'
-      +'<span class="odds-updated" id="oddsUpdated_'+fIdx+'">—</span>'
+      +'<span class="odds-updated" id="oddsUp_'+fIdx+'">—</span>'
       +'<button class="odds-refresh-btn" id="oddsRefBtn_'+fIdx+'">↻</button></div></div>'
       +'<div class="odds-grid">'
       +'<div class="odds-card"><div class="odds-fighter">'+a.name.split(' ')[0]+'</div>'
-      +'<div class="odds-line '+(aFav?'odds-fav':'odds-dog')+'" id="oddsLineA_'+fIdx+'">'+odds.aLine+'</div>'
-      +'<div class="odds-implied">Implied: '+aImpl+'</div></div>'
+      +'<div class="odds-line '+(aFav?'odds-fav':'odds-dog')+'" id="olA_'+fIdx+'">'+odds.aLine+'</div>'
+      +'<div class="odds-implied">Implied: '+implied(odds.aLine)+'</div></div>'
       +'<div class="odds-card"><div class="odds-fighter">'+b.name.split(' ')[0]+'</div>'
-      +'<div class="odds-line '+(bFav?'odds-fav':'odds-dog')+'" id="oddsLineB_'+fIdx+'">'+odds.bLine+'</div>'
-      +'<div class="odds-implied">Implied: '+bImpl+'</div></div></div>'
-      +'<div class="odds-note">'+(odds.note||'');
-    if(odds.props) odds.props.forEach(function(p){ oddsHtml+='<div style="display:inline-block;font-size:10px;padding:3px 8px;border-radius:4px;background:var(--bg4);color:var(--text3);border:1px solid var(--border);margin:3px 3px 0 0">'+p+'</div>'; });
+      +'<div class="odds-line '+(bFav?'odds-fav':'odds-dog')+'" id="olB_'+fIdx+'">'+odds.bLine+'</div>'
+      +'<div class="odds-implied">Implied: '+implied(odds.bLine)+'</div></div>'
+      +'</div><div class="odds-props">';
+    if(odds.props)odds.props.forEach(function(p){oddsHtml+='<div class="odds-prop">'+p+'</div>';});
     oddsHtml+='</div></div>';
   }
 
-  // --- TALENT ---
+  // talent
+  function tierB(t){var m={elite:'tier-elite',contender:'tier-contender',prospect:'tier-prospect',veteran:'tier-veteran',gatekeeper:'tier-gatekeeper'};var l={elite:'ELITE',contender:'CONTENDER',prospect:'PROSPECT',veteran:'VETERAN',gatekeeper:'GATEKEEPER'};return'<span class="tier-badge '+(m[t]||'tier-veteran')+'">'+(l[t]||t.toUpperCase())+'</span>';}
+  function starsHtml(n){var s='';for(var i=1;i<=5;i++)s+='<div class="star '+(i<=n?'star-on':'star-off')+'"></div>';return'<div class="talent-stars">'+s+'</div>';}
   var talentHtml='';
   if(a.talent||b.talent){
-    var ta=a.talent||{}, tb=b.talent||{};
-    function tierBadgeL(t){var m={elite:'tier-elite',contender:'tier-contender',prospect:'tier-prospect',veteran:'tier-veteran',gatekeeper:'tier-gatekeeper'};var l={elite:'ELITE',contender:'CONTENDER',prospect:'PROSPECT',veteran:'VETERAN',gatekeeper:'GATEKEEPER'};return'<span class="tier-badge '+(m[t]||'tier-veteran')+'">'+(l[t]||t.toUpperCase())+'</span>';}
-    function starsL(n,max){max=max||5;var s='';for(var i=1;i<=max;i++)s+='<div class="star '+(i<=n?'star-on':'star-off')+'"></div>';return'<div class="talent-stars">'+s+'</div>';}
-    function talentRows(t){return ['striking','grappling','wrestling','cardio','chin'].map(function(k){return'<div class="talent-row"><span class="talent-label">'+k+'</span>'+starsL(t[k]||3)+'</div>';}).join('');}
-    talentHtml='<div class="talent-box"><div class="section-title">Talent level</div><div class="talent-grid">'
-      +'<div class="talent-card"><h5 style="color:var(--blue)">'+a.name.split(' ')[0]+'</h5>'+tierBadgeL(ta.tier||'veteran')+'<div style="margin-top:8px">'+talentRows(ta)+'</div></div>'
-      +'<div class="talent-card"><h5 style="color:var(--red)">'+b.name.split(' ')[0]+'</h5>'+tierBadgeL(tb.tier||'veteran')+'<div style="margin-top:8px">'+talentRows(tb)+'</div></div>'
+    var ta=a.talent||{},tb=b.talent||{};
+    function tRows(t){return['striking','grappling','wrestling','cardio','chin'].map(function(k){return'<div class="talent-row"><span class="talent-label">'+k+'</span>'+starsHtml(t[k]||3)+'</div>';}).join('');}
+    talentHtml='<div class="talent-box"><div class="section-title">Talent</div><div class="talent-grid">'
+      +'<div class="talent-card"><h5 style="color:var(--blue)">'+a.name.split(' ')[0]+'</h5>'+tierB(ta.tier||'veteran')+'<div style="margin-top:8px">'+tRows(ta)+'</div></div>'
+      +'<div class="talent-card"><h5 style="color:var(--red)">'+b.name.split(' ')[0]+'</h5>'+tierB(tb.tier||'veteran')+'<div style="margin-top:8px">'+tRows(tb)+'</div></div>'
       +'</div></div>';
   }
 
-  // --- NOTABLE WINS ---
-  function winsList(f,dotCls){
-    if(!f.wins||!f.wins.length) return'<div class="no-wins">No notable wins listed</div>';
-    return f.wins.map(function(w){
-      return'<div class="win-entry"><div class="win-dot '+dotCls+'"></div><div>'
-        +'<div class="win-name">'+w.name+(w.hof?'<span class="hof-badge">HOF</span>':'')+(w.champ?'<span class="champ-badge">CHAMP</span>':'')+'</div>'
-        +'<div class="win-detail">'+w.detail+'</div></div></div>';
-    }).join('');
+  // wins
+  function winsList(f,dc){
+    if(!f.wins||!f.wins.length)return'<div class="no-wins">No notable wins listed</div>';
+    return f.wins.map(function(w){return'<div class="win-entry"><div class="win-dot '+dc+'"></div><div><div class="win-name">'+w.name+(w.hof?'<span class="hof-badge">HOF</span>':'')+(w.champ?'<span class="champ-badge">CHAMP</span>':'')+'</div><div class="win-detail">'+w.detail+'</div></div></div>';}).join('');
   }
-  var winsHtml='<div class="wins-box"><div class="section-title">Notable wins</div><div class="wins-grid">'
+  var winsHtml='<div class="wins-box"><div class="section-title">Notable Wins</div><div class="wins-grid">'
     +'<div class="wins-card"><h5 style="color:var(--blue)">'+a.name.split(' ')[0]+'</h5>'+winsList(a,'win-dot-blue')+'</div>'
     +'<div class="wins-card"><h5 style="color:var(--red)">'+b.name.split(' ')[0]+'</h5>'+winsList(b,'win-dot-red')+'</div>'
     +'</div></div>';
 
-  // --- ROUND TRACKER ---
+  // rounds
   var roundsHtml='';
   if(fIdx!=='c'){
-    var rdKey=getRoundKey(fIdx);
-    var rounds=roundData[rdKey]||[];
-    var aFirst=a.name.split(' ')[0], bFirst=b.name.split(' ')[0];
-    roundsHtml='<div class="rounds-box" id="roundsBox_'+fIdx+'">'
-      +'<div class="rounds-header"><span class="rounds-title">Live round tracker</span>'
+    var rds=roundData[getRoundKey(fIdx)]||[];
+    var aF=a.name.split(' ')[0],bF=b.name.split(' ')[0];
+    roundsHtml='<div class="rounds-box"><div class="rounds-header">'
+      +'<span class="rounds-title">Live Round Tracker</span>'
       +'<button class="rounds-clear" id="clearRndBtn_'+fIdx+'">Clear</button></div>'
-      +'<div class="round-rows" id="roundRows_'+fIdx+'">'
-      +rounds.map(function(rd,i){
+      +'<div id="roundRows_'+fIdx+'">'
+      +rds.map(function(rd,i){
         return'<div class="round-row">'
-          +'<div class="rnd-label">Rd '+(i+1)+'</div>'
-          +'<div class="rnd-strikes"><input class="rnd-input" type="number" min="0" placeholder="0" value="'+(rd.aStrikes||'')+'" id="rndA_'+fIdx+'_'+i+'" style="text-align:right"/><span style="font-size:10px;color:var(--text3)">sig</span></div>'
+          +'<div class="rnd-label">R'+(i+1)+'</div>'
+          +'<div><input class="rnd-input" type="number" min="0" placeholder="0" value="'+(rd.aStrikes||'')+'" id="rA_'+fIdx+'_'+i+'" style="text-align:right"/></div>'
           +'<div class="rnd-winner-btns">'
-          +'<button class="rnd-btn'+(rd.winner==='a'?' picked-blue':'')+'" id="rndBtnA_'+fIdx+'_'+i+'">'+aFirst+'</button>'
-          +'<button class="rnd-btn'+(rd.winner==='b'?' picked-red':'')+'" id="rndBtnB_'+fIdx+'_'+i+'">'+bFirst+'</button>'
+          +'<button class="rnd-btn'+(rd.winner==='a'?' picked-blue':'')+'" id="rbA_'+fIdx+'_'+i+'">'+aF+'</button>'
+          +'<button class="rnd-btn'+(rd.winner==='b'?' picked-red':'')+'" id="rbB_'+fIdx+'_'+i+'">'+bF+'</button>'
           +'</div>'
-          +'<div class="rnd-strikes"><span style="font-size:10px;color:var(--text3)">sig</span><input class="rnd-input" type="number" min="0" placeholder="0" value="'+(rd.bStrikes||'')+'" id="rndB_'+fIdx+'_'+i+'"/></div>'
-          +'<div class="rnd-label" style="color:'+(rd.winner==='a'?'var(--blue)':rd.winner==='b'?'var(--red)':'var(--text3)')+'">'+( rd.winner?( rd.winner==='a'?aFirst:bFirst):'—')+'</div>'
+          +'<div><input class="rnd-input" type="number" min="0" placeholder="0" value="'+(rd.bStrikes||'')+'" id="rB_'+fIdx+'_'+i+'"/></div>'
+          +'<div class="rnd-label" style="color:'+(rd.winner==='a'?'var(--blue)':rd.winner==='b'?'var(--red)':'var(--text3)')+'">'+( rd.winner?(rd.winner==='a'?aF:bF):'—')+'</div>'
           +'</div>';
       }).join('')
       +'</div><div id="scorecard_'+fIdx+'" class="scorecard"></div></div>';
   }
 
-  // --- TRACKER ---
-  var predHtml='';
+  // tracker
+  var trackerHtml='';
   if(fIdx!=='c'){
-    var modelWinner=prob[0]>=prob[1]?a:b;
-    var modelLoser=prob[0]>=prob[1]?b:a;
-    var modelWinPct=Math.max(prob[0],prob[1]);
+    var mW=prob[0]>=prob[1]?a:b, mL=prob[0]>=prob[1]?b:a, mPct=Math.max(prob[0],prob[1]);
     var ts=loadTracker();
     var tPct=ts.total>0?Math.round(ts.correct/ts.total*100)+'%':'—';
-    predHtml='<div class="tracker-box">'
-      +'<div class="tracker-header"><span class="tracker-title">Win probability tracker</span>'
-      +'<button class="clear-log-btn" id="clearLogBtn_'+fIdx+'">Clear history</button></div>'
+    trackerHtml='<div class="tracker-box">'
+      +'<div class="tracker-header"><span class="tracker-title">Win Probability Tracker</span>'
+      +'<button class="clear-log-btn" id="clrLog_'+fIdx+'">Clear</button></div>'
       +'<div class="tracker-stats">'
-      +'<div class="tstat"><div class="tstat-num" style="color:var(--gold)">'+tPct+'</div><div class="tstat-label">Model accuracy</div></div>'
-      +'<div class="tstat"><div class="tstat-num" style="color:var(--green)">'+ts.correct+'</div><div class="tstat-label">Correct picks</div></div>'
-      +'<div class="tstat"><div class="tstat-num" style="color:var(--text2)">'+ts.total+'</div><div class="tstat-label">Fights logged</div></div>'
+      +'<div class="tstat"><div class="tstat-num" style="color:var(--gold)">'+tPct+'</div><div class="tstat-label">Accuracy</div></div>'
+      +'<div class="tstat"><div class="tstat-num" style="color:var(--green)">'+ts.correct+'</div><div class="tstat-label">Correct</div></div>'
+      +'<div class="tstat"><div class="tstat-num" style="color:var(--text2)">'+ts.total+'</div><div class="tstat-label">Logged</div></div>'
       +'</div>'
       +'<div class="model-pick-row">'
-      +'<div><div class="model-pick-label">Model predicts</div>'
-      +'<div class="model-pick-fighter" style="color:'+( prob[0]>=prob[1]?'var(--blue)':'var(--red)')+'">'+ modelWinner.name+'</div>'
-      +'<div style="font-size:10px;color:var(--text3);margin-top:2px">'+wm.pick+'</div></div>'
-      +'<div style="text-align:right"><div class="model-pick-pct" style="color:'+( prob[0]>=prob[1]?'var(--blue)':'var(--red)')+'">'+modelWinPct+'%</div>'
-      +'<div style="font-size:9px;color:var(--text3)">win probability</div></div></div>'
+      +'<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Model picks</div>'
+      +'<div style="font-size:14px;font-weight:600;color:'+(prob[0]>=prob[1]?'var(--blue)':'var(--red)')+'">'+mW.name+'</div>'
+      +'<div style="font-size:10px;color:var(--text3)">'+wm.pick+'</div></div>'
+      +'<div style="text-align:right"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:700;color:'+(prob[0]>=prob[1]?'var(--blue)':'var(--red)')+'">'+mPct+'%</div>'
+      +'<div style="font-size:9px;color:var(--text3)">win prob</div></div></div>'
       +'<div id="predResult_'+fIdx+'">'
-      +'<p style="font-size:11px;color:var(--text3);margin-bottom:7px">Auto-tracks from ESPN · log manually if needed:</p>'
+      +'<p style="font-size:11px;color:var(--text3);margin-bottom:7px">After fight — log result:</p>'
       +'<div class="result-btns">'
-      +'<button class="res-btn res-btn-correct" id="resCorrect_'+fIdx+'">✓ '+modelWinner.name.split(' ')[0]+' Won</button>'
-      +'<button class="res-btn res-btn-wrong" id="resWrong_'+fIdx+'">✗ '+modelLoser.name.split(' ')[0]+' Won</button>'
+      +'<button class="res-btn res-btn-correct" id="resC_'+fIdx+'">✓ '+mW.name.split(' ')[0]+' Won</button>'
+      +'<button class="res-btn res-btn-wrong" id="resW_'+fIdx+'">✗ '+mL.name.split(' ')[0]+' Won</button>'
       +'</div></div>'
-      +'<div class="tracker-log"><div class="log-title">Recent fight history</div>'
-      +'<div id="trackerLogDisplay_'+fIdx+'">'+renderTrackerLog()+'</div></div>'
+      +'<div class="tracker-log"><div class="log-title">Recent History</div>'
+      +'<div id="trkLog_'+fIdx+'">'+renderTrackerLog()+'</div></div>'
       +'</div>';
   }
 
-  // --- STAT ROW HELPERS (local) ---
+  // stat row helper
   function sr(lbl,va,vb,higher,isText){
-    higher = higher!==false;
-    isText = isText===true;
-    var nA=parseFloat(va)||0, nB=parseFloat(vb)||0;
-    var clA='', clB='';
-    if(!isText){
-      if(higher){if(nA>nB)clA='adv-l';else if(nB>nA)clB='adv-r';}
-      else{if(nA<nB)clA='adv-l';else if(nB<nA)clB='adv-r';}
-    }
-    var bA=60, bB=60;
-    if(!isText){var mn=Math.min(nA,nB),mx=Math.max(nA,nB),rng=mx-mn||1;bA=Math.round(40+((nA-mn)/rng)*55);bB=Math.round(40+((nB-mn)/rng)*55);}
-    return'<div class="stat-row"><div class="sv-l"><span class="'+clA+'">'+va+'</span></div><div class="sl">'+lbl+'</div><div class="sv-r"><span class="'+clB+'">'+vb+'</span></div></div>'
+    var nA=parseFloat(va)||0,nB=parseFloat(vb)||0;
+    var cA='',cB='';
+    if(!isText){if(higher!==false){if(nA>nB)cA='adv-l';else if(nB>nA)cB='adv-r';}else{if(nA<nB)cA='adv-l';else if(nB<nA)cB='adv-r';}}
+    var bA=60,bB=60;
+    if(!isText){var mn=Math.min(nA,nB),mx=Math.max(nA,nB),rng=mx-mn||1;bA=Math.round(40+(nA-mn)/rng*55);bB=Math.round(40+(nB-mn)/rng*55);}
+    return'<div class="stat-row"><div class="sv-l"><span class="'+cA+'">'+va+'</span></div><div class="sl">'+lbl+'</div><div class="sv-r"><span class="'+cB+'">'+vb+'</span></div></div>'
       +(isText?'':'<div class="bar-row"><div class="bc bl"><div class="bf" style="width:'+bA+'%"></div></div><div></div><div class="bc br"><div class="bf" style="width:'+bB+'%"></div></div></div>');
   }
 
-  // --- MAIN HTML ---
   var html=''
     +'<div class="vs-bar">'
     +'<div class="f-blue">'
     +'<div><span class="rank-badge rank-blue">'+(a.rank||'NR')+'</span></div>'
-    +'<div class="f-name">'+a.name+'</div>'
-    +(a.nick?'<div class="f-nick">"'+a.nick+'"</div>':'')
+    +'<div class="f-name">'+a.name+'</div>'+(a.nick?'<div class="f-nick">"'+a.nick+'"</div>':'')
     +'<div class="f-rec" style="color:var(--blue)">'+(a.rec||'')+'</div>'
     +'<div class="f-form">'+(a.form||'')+'</div></div>'
     +'<div class="vs-center"><div class="weight-class">'+(label||'')+'</div><div class="vs-pill">VS</div></div>'
     +'<div class="f-red">'
     +'<div><span class="rank-badge rank-red">'+(b.rank||'NR')+'</span></div>'
-    +'<div class="f-name">'+b.name+'</div>'
-    +(b.nick?'<div class="f-nick">"'+b.nick+'"</div>':'')
+    +'<div class="f-name">'+b.name+'</div>'+(b.nick?'<div class="f-nick">"'+b.nick+'"</div>':'')
     +'<div class="f-rec" style="color:var(--red)">'+(b.rec||'')+'</div>'
     +'<div class="f-form">'+(b.form||'')+'</div></div></div>'
 
-    +'<div class="wm-box"><div class="wm-header"><span class="wm-label">Predicted win method</span>'
+    +'<div class="wm-box"><div class="wm-header"><span class="wm-label">Predicted method</span>'
     +'<span class="wm-pick wm-'+(wm.method||'dec')+'">'+wm.pick+'</span></div>'
     +'<p class="wm-reason">'+wm.reason+'</p></div>'
 
     +oddsHtml
 
     +'<div class="section"><div class="section-title">Physical</div>'
-    +sr('Age',a.age,b.age,false)
-    +sr('Height',(a.height||''),(b.height||''),true,true)
+    +sr('Age',a.age,b.age,false)+sr('Height',a.height||'—',b.height||'—',true,true)
     +sr('Reach',(a.reach||0)+'"',(b.reach||0)+'"')
-    +sr('Stance',(a.stance||''),(b.stance||''),true,true)
-    +sr('Style',(a.style||''),(b.style||''),true,true)
+    +sr('Stance',a.stance||'—',b.stance||'—',true,true)+sr('Style',a.style||'—',b.style||'—',true,true)
     +'</div>'
 
     +'<div class="section"><div class="section-title">Striking</div>'
-    +sr('Sig. strikes/min',a.slpm.toFixed(2),b.slpm.toFixed(2))
-    +sr('Striking accuracy',a.sacc+'%',b.sacc+'%')
-    +sr('Striking defense',a.sdef+'%',b.sdef+'%')
+    +sr('Sig. Strikes/min',a.slpm.toFixed(2),b.slpm.toFixed(2))
+    +sr('Striking Accuracy',a.sacc+'%',b.sacc+'%')+sr('Striking Defense',a.sdef+'%',b.sdef+'%')
     +'</div>'
 
-    +'<div class="section"><div class="section-title">Grappling & takedowns</div>'
+    +'<div class="section"><div class="section-title">Grappling</div>'
     +sr('TDs / 15 min',a.tdavg.toFixed(2),b.tdavg.toFixed(2))
-    +sr('TD accuracy',a.tdacc+'%',b.tdacc+'%')
-    +sr('TD defense',a.tddef+'%',b.tddef+'%')
-    +sr('Submission avg',a.subavg.toFixed(2),b.subavg.toFixed(2))
+    +sr('TD Accuracy',a.tdacc+'%',b.tdacc+'%')+sr('TD Defense',a.tddef+'%',b.tddef+'%')
+    +sr('Sub Avg',a.subavg.toFixed(2),b.subavg.toFixed(2))
     +'</div>'
 
-    +'<div class="section"><div class="section-title">Win methods (career)</div>'
-    +'<div class="finish-grid">'
+    +'<div class="section"><div class="section-title">Win Methods</div><div class="finish-grid">'
     +'<div class="finish-card"><h4 style="color:var(--blue)">'+a.name.split(' ')[0]+'</h4>'
     +'<div class="finish-row"><span class="finish-type">KO/TKO</span><span class="finish-val">'+a.ko+'</span></div>'
     +'<div class="finish-row"><span class="finish-type">Submission</span><span class="finish-val">'+a.sub+'</span></div>'
@@ -1195,10 +742,9 @@ function renderComp(a,b,wm,label,odds,fightIdx){
     +'<div class="finish-rate-row"><span class="finish-type">Finish rate</span><span class="finish-val" style="color:var(--red)">'+finRateB+'%</span></div></div>'
     +'</div></div>'
 
-    +talentHtml
-    +winsHtml
+    +talentHtml+winsHtml
 
-    +'<div class="section"><div class="section-title">Win probability · Seattle · Sea level · Standard octagon</div>'
+    +'<div class="section"><div class="section-title">Win Probability · Seattle 175ft · Indoor · Standard Octagon</div>'
     +'<div class="prob-cards">'
     +'<div class="prob-card"><div class="prob-pct prob-pct-blue">'+prob[0]+'%</div><div class="prob-name">'+a.name.split(' ')[0]+'</div></div>'
     +'<div class="prob-card"><div class="prob-pct prob-pct-red">'+prob[1]+'%</div><div class="prob-name">'+b.name.split(' ')[0]+'</div></div>'
@@ -1207,434 +753,328 @@ function renderComp(a,b,wm,label,odds,fightIdx){
     +'<div class="prob-labels"><span>'+a.name.split(' ')[0]+' '+prob[0]+'%</span><span>'+b.name.split(' ')[0]+' '+prob[1]+'%</span></div>'
     +'</div>'
 
-    +roundsHtml
-    +predHtml
+    +roundsHtml+trackerHtml
 
     +'<div class="analysis-box">'
     +'<div class="analysis-edge">Model edge: <span style="color:'+wCol+'">'+wName+' ('+Math.max(prob[0],prob[1])+'%)</span></div>'
-    +'<p class="analysis-p">'+a.name.split(' ')[0]+': '+(a.streak||'')+' · '+(a.style||'')+'</p>'
-    +'<p class="analysis-p">'+b.name.split(' ')[0]+': '+(b.streak||'')+' · '+(b.style||'')+'</p>'
-    +'<div id="deepBtnWrap_'+fIdx+'"><button class="deep-btn" id="deepBtn_'+fIdx+'">⚡ Deep AI Analysis</button></div>'
-    +'<div id="aiPanel_'+fIdx+'"></div>'
-    +'</div>';
-
-  // Return HTML — attach event listeners after caller inserts into DOM
-  // Store pending bindings on a global queue
-  window._pendingBindings = window._pendingBindings || [];
-  window._pendingBindings.push({fIdx:fIdx, a:a, b:b, wm:wm, prob:prob, modelWinner:prob[0]>=prob[1]?a:b, modelLoser:prob[0]>=prob[1]?b:a, modelWinPct:Math.max(prob[0],prob[1])});
+    +'<p class="analysis-p">'+a.name.split(' ')[0]+': '+(a.streak||'')+(a.style?' · '+a.style:'')+'</p>'
+    +'<p class="analysis-p">'+b.name.split(' ')[0]+': '+(b.streak||'')+(b.style?' · '+b.style:'')+'</p>'
+    +'<button class="deep-btn" id="deepBtn_'+fIdx+'">⚡ Deep AI Analysis</button>'
+    +'<div id="aiPanel_'+fIdx+'"></div></div>';
 
   return html;
 }
 
-// Called after renderComp HTML is inserted into the DOM
-function bindCompListeners(fIdx, a, b, wm, prob, modelWinner, modelLoser, modelWinPct){
-  // Odds refresh
-  var oddsBtn=document.getElementById('oddsRefBtn_'+fIdx);
-  if(oddsBtn) oddsBtn.addEventListener('click',function(){ refreshOdds(fIdx); });
+// ── BIND LISTENERS after innerHTML set ─────────────
+function bindListeners(fIdx,a,b,wm,prob){
+  var mW=prob[0]>=prob[1]?a:b, mL=prob[0]>=prob[1]?b:a, mPct=Math.max(prob[0],prob[1]);
 
-  // Clear rounds
-  var clearRndBtn=document.getElementById('clearRndBtn_'+fIdx);
-  if(clearRndBtn) clearRndBtn.addEventListener('click',function(){ clearRounds(fIdx); });
+  // odds refresh
+  var ob=document.getElementById('oddsRefBtn_'+fIdx);
+  if(ob)ob.addEventListener('click',function(){
+    var t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    var el=document.getElementById('oddsUp_'+fIdx); if(el)el.textContent='Updated '+t;
+  });
 
-  // Clear log
-  var clearLogBtn=document.getElementById('clearLogBtn_'+fIdx);
-  if(clearLogBtn) clearLogBtn.addEventListener('click',function(){ clearTrackerLog(); });
-
-  // Record result buttons
-  var resC=document.getElementById('resCorrect_'+fIdx);
-  var resW=document.getElementById('resWrong_'+fIdx);
-  if(resC) resC.addEventListener('click',function(){ recordResult(fIdx, modelWinner.name, modelWinPct, true); });
-  if(resW) resW.addEventListener('click',function(){ recordResult(fIdx, modelWinner.name, modelWinPct, false); });
-
-  // Round tracker inputs and buttons
+  // round tracker
   if(fIdx!=='c'){
-    var numRounds=fIdx<2?5:3;
-    for(var i=0;i<numRounds;i++){
+    var nRds=fIdx<2?5:3;
+    for(var i=0;i<nRds;i++){
       (function(ri){
-        var inpA=document.getElementById('rndA_'+fIdx+'_'+ri);
-        var inpB=document.getElementById('rndB_'+fIdx+'_'+ri);
-        var btnA=document.getElementById('rndBtnA_'+fIdx+'_'+ri);
-        var btnB=document.getElementById('rndBtnB_'+fIdx+'_'+ri);
-        if(inpA) inpA.addEventListener('change',function(){ updateRound(fIdx,ri,'aStrikes',this.value); });
-        if(inpB) inpB.addEventListener('change',function(){ updateRound(fIdx,ri,'bStrikes',this.value); });
-        if(btnA) btnA.addEventListener('click',function(){ setRoundWinner(fIdx,ri,'a'); });
-        if(btnB) btnB.addEventListener('click',function(){ setRoundWinner(fIdx,ri,'b'); });
+        var inA=document.getElementById('rA_'+fIdx+'_'+ri);
+        var inB=document.getElementById('rB_'+fIdx+'_'+ri);
+        var btA=document.getElementById('rbA_'+fIdx+'_'+ri);
+        var btB=document.getElementById('rbB_'+fIdx+'_'+ri);
+        if(inA)inA.addEventListener('change',function(){updateRound(fIdx,ri,'aStrikes',this.value);});
+        if(inB)inB.addEventListener('change',function(){updateRound(fIdx,ri,'bStrikes',this.value);});
+        if(btA)btA.addEventListener('click',function(){setRoundWinner(fIdx,ri,'a',a,b);});
+        if(btB)btB.addEventListener('click',function(){setRoundWinner(fIdx,ri,'b',a,b);});
       })(i);
     }
+
+    // clear rounds
+    var cr=document.getElementById('clearRndBtn_'+fIdx);
+    if(cr)cr.addEventListener('click',function(){clearRounds(fIdx);});
+
+    // tracker result buttons
+    var rc=document.getElementById('resC_'+fIdx);
+    var rw=document.getElementById('resW_'+fIdx);
+    if(rc)rc.addEventListener('click',function(){recordResult(fIdx,mW,mL,mPct,true,a,b,wm);});
+    if(rw)rw.addEventListener('click',function(){recordResult(fIdx,mW,mL,mPct,false,a,b,wm);});
+
+    // clear log
+    var cl=document.getElementById('clrLog_'+fIdx);
+    if(cl)cl.addEventListener('click',function(){
+      if(!confirm('Clear history?'))return;
+      localStorage.removeItem('ufcProbTracker');
+      updateAccChip();
+      var ld=document.getElementById('trkLog_'+fIdx); if(ld)ld.innerHTML=renderTrackerLog();
+    });
   }
 
-  // Deep AI analysis button
-  var deepBtn=document.getElementById('deepBtn_'+fIdx);
-  if(deepBtn) deepBtn.addEventListener('click',function(){
-    runDeepAnalysis(deepBtn,a.name,b.name,a.rec||'',b.rec||'',a.style||'',b.style||'',a.sacc,b.sacc,a.sdef,b.sdef,a.tdacc,b.tdacc,a.ko,b.ko,a.sub,b.sub,prob[0],prob[1],wm.pick||'');
+  // deep AI
+  var db=document.getElementById('deepBtn_'+fIdx);
+  if(db)db.addEventListener('click',function(){
+    runDeepAnalysis(db,a,b,prob,wm);
   });
 }
 
-
-// ═══════════════════════════════════════════════════
-// ROUND TRACKER ACTIONS
-// ═══════════════════════════════════════════════════
-function updateRound(fIdx,rIdx,key,val){
-  const k=getRoundKey(fIdx);
-  if(roundData[k])roundData[k][rIdx][key]=val;
-  updateScorecard(fIdx);
+// ── ROUND TRACKER ACTIONS ──────────────────────────
+function updateRound(fi,ri,key,val){var k=getRoundKey(fi);if(roundData[k])roundData[k][ri][key]=val;updateScorecard(fi);}
+function setRoundWinner(fi,ri,who,a,b){
+  var k=getRoundKey(fi); if(!roundData[k])return;
+  roundData[k][ri].winner=roundData[k][ri].winner===who?null:who;
+  var aF=a.name.split(' ')[0],bF=b.name.split(' ')[0];
+  var nRds=fi<2?5:3;
+  for(var i=0;i<nRds;i++){
+    var rd=roundData[k][i];
+    var btA=document.getElementById('rbA_'+fi+'_'+i);
+    var btB=document.getElementById('rbB_'+fi+'_'+i);
+    if(btA){btA.className='rnd-btn'+(rd.winner==='a'?' picked-blue':'');}
+    if(btB){btB.className='rnd-btn'+(rd.winner==='b'?' picked-red':'');}
+  }
+  updateScorecard(fi,a,b);
 }
-function setRoundWinner(fIdx,rIdx,who){
-  const k=getRoundKey(fIdx);
-  if(!roundData[k])return;
-  roundData[k][rIdx].winner=roundData[k][rIdx].winner===who?null:who;
-  const rows=document.getElementById('roundRows_'+fIdx);
-  if(!rows)return;
-  const fight=FIGHTS[fIdx];
-  const a=fight?fight.a:{name:'Fighter A'};
-  const b=fight?fight.b:{name:'Fighter B'};
-  roundData[k].forEach((rd,i)=>{
-    const btns=rows.querySelectorAll('.round-row')[i]?.querySelectorAll('.rnd-btn');
-    if(btns){
-      btns[0].className='rnd-btn'+(rd.winner==='a'?' picked-blue':'');
-      btns[1].className='rnd-btn'+(rd.winner==='b'?' picked-red':'');
-    }
-    const label=rows.querySelectorAll('.round-row')[i]?.querySelector('.rnd-label:last-child');
-    if(label){
-      label.style.color=rd.winner==='a'?'var(--blue)':rd.winner==='b'?'var(--red)':'var(--text3)';
-      label.textContent=rd.winner?rd.winner==='a'?a.name.split(' ')[0]:b.name.split(' ')[0]:'—';
-    }
-  });
-  updateScorecard(fIdx);
-}
-function updateScorecard(fIdx){
-  const k=getRoundKey(fIdx);
-  const sc=document.getElementById('scorecard_'+fIdx);
+function updateScorecard(fi,a,b){
+  var k=getRoundKey(fi); var sc=document.getElementById('scorecard_'+fi);
   if(!sc||!roundData[k])return;
-  let aR=0,bR=0,aS=0,bS=0;
-  roundData[k].forEach(rd=>{
-    if(rd.winner==='a')aR++;else if(rd.winner==='b')bR++;
-    aS+=parseInt(rd.aStrikes)||0;bS+=parseInt(rd.bStrikes)||0;
-  });
-  const fight=FIGHTS[fIdx];
-  const aName=fight?fight.a.name.split(' ')[0]:'A';
-  const bName=fight?fight.b.name.split(' ')[0]:'B';
-  if(aR===0&&bR===0&&aS===0&&bS===0){sc.innerHTML='';return;}
-  sc.innerHTML=`
-    <span class="score-label">Rounds:</span>
-    <span class="score-chip score-blue">${aName} ${aR}</span>
-    <span class="score-chip score-red">${bName} ${bR}</span>
-    <span class="score-label" style="margin-left:8px">Sig. Str:</span>
-    <span class="score-chip score-blue">${aS}</span>
-    <span class="score-chip score-red">${bS}</span>
-    ${aR>bR?`<span style="font-size:11px;color:var(--blue);font-weight:600">${aName} leading</span>`:aR<bR?`<span style="font-size:11px;color:var(--red);font-weight:600">${bName} leading</span>`:'<span style="font-size:11px;color:var(--text3)">Even</span>'}`;
+  var aR=0,bR=0,aS=0,bS=0;
+  roundData[k].forEach(function(rd){if(rd.winner==='a')aR++;else if(rd.winner==='b')bR++;aS+=parseInt(rd.aStrikes)||0;bS+=parseInt(rd.bStrikes)||0;});
+  if(!aR&&!bR&&!aS&&!bS){sc.innerHTML='';return;}
+  var fight=FIGHTS[fi]; var aN=fight?fight.a.name.split(' ')[0]:'A',bN=fight?fight.b.name.split(' ')[0]:'B';
+  sc.innerHTML='<span class="score-label">Rounds:</span><span class="score-chip score-blue">'+aN+' '+aR+'</span><span class="score-chip score-red">'+bN+' '+bR+'</span>'
+    +'<span class="score-label" style="margin-left:8px">Str:</span><span class="score-chip score-blue">'+aS+'</span><span class="score-chip score-red">'+bS+'</span>'
+    +(aR>bR?'<span style="font-size:11px;color:var(--blue);font-weight:600">'+aN+' leading</span>':aR<bR?'<span style="font-size:11px;color:var(--red);font-weight:600">'+bN+' leading</span>':'<span style="font-size:11px;color:var(--text3)">Even</span>');
 }
-function clearRounds(fIdx){
-  const k=getRoundKey(fIdx);
-  const fight=FIGHTS[fIdx];
-  if(!fight)return;
-  const n=parseInt(fight.label.match(/(\d) rds/)?.[1])||3;
-  roundData[k]=Array.from({length:n},()=>({aStrikes:'',bStrikes:'',winner:null}));
-  selectFight(fIdx);
-}
+function clearRounds(fi){var k=getRoundKey(fi);roundData[k]=[];initRounds(fi,fi<2?5:3);loadFight(fi);}
 
-// ═══════════════════════════════════════════════════
-// PREDICTION LOG
-// ═══════════════════════════════════════════════════
-function recordResult(fIdx, modelPickName, modelPct, wasCorrect){
-  const el=document.getElementById('predResult_'+fIdx);
-  const fight=FIGHTS[fIdx];
-  const label=fight?fight.label.split('·')[0].trim():'Fight';
-
-  // Figure out the actual winner name for the log
-  let actualWinner='';
-  if(fight){
-    const modelWinnerIsA = (modelPickName===fight.a.name);
-    if(wasCorrect){
-      actualWinner=modelPickName.split(' ').slice(-1)[0];
-    } else {
-      actualWinner=(modelWinnerIsA?fight.b.name:fight.a.name).split(' ').slice(-1)[0];
-    }
-  }
-
-  logModelResult(wasCorrect, label, modelPickName.split(' ').slice(-1)[0], modelPct, actualWinner);
-
+// ── TRACKER RECORD ──────────────────────────────────
+function recordResult(fi,mW,mL,mPct,correct,a,b,wm){
+  var fight=FIGHTS[fi]; var label=fight?fight.label.split('·')[0].trim():'Fight';
+  var actual=correct?mW.name.split(' ').slice(-1)[0]:mL.name.split(' ').slice(-1)[0];
+  logModelResult(correct,label,mW.name.split(' ').slice(-1)[0],mPct,actual);
+  var el=document.getElementById('predResult_'+fi);
   if(el){
-    const color = wasCorrect ? 'var(--green)' : 'var(--red)';
-    const icon  = wasCorrect ? '✓' : '✗';
-    const msg   = wasCorrect
-      ? icon+' Model was correct — '+modelPickName.split(' ').slice(-1)[0]+' won ('+modelPct+'%)'
-      : icon+' Model was wrong — '+actualWinner+' won (underdog)';
-    el.innerHTML=`<div style="font-size:12px;color:${color};font-weight:500;padding:8px 0">${msg}</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:4px">Logged to tracker · refresh the fight to log again</div>`;
+    var col=correct?'var(--green)':'var(--red)';
+    el.innerHTML='<div style="font-size:12px;color:'+col+';font-weight:500;padding:8px 0">'+(correct?'✓ Correct — ':'✗ Wrong — ')+actual+' won</div>'
+      +'<div style="font-size:10px;color:var(--text3)">Logged to tracker</div>';
   }
-
-  // Refresh log display if visible
-  const logEl=document.getElementById('trackerLogDisplay');
-  if(logEl) logEl.innerHTML=renderTrackerLog();
+  var ld=document.getElementById('trkLog_'+fi); if(ld)ld.innerHTML=renderTrackerLog();
   updateAccChip();
 }
 
-// ═══════════════════════════════════════════════════
-// VENUE BANNER
-// ═══════════════════════════════════════════════════
-function renderVenueBanner(targetId){
-  const el=document.getElementById(targetId);
-  if(!el)return;
-  el.innerHTML=`<div class="venue-banner">
-    <span class="venue-item"><strong>Venue:</strong> ${VENUE.name}, ${VENUE.city}</span>
-    <span class="venue-item"><strong>Altitude:</strong> ${VENUE.altitude} ft <span class="venue-modifier mod-pos">Sea level — no fatigue factor</span></span>
-    <span class="venue-item"><strong>Octagon:</strong> ${VENUE.octagon} <span class="venue-modifier mod-neu">Standard</span></span>
-    <span class="venue-item"><strong>Temp:</strong> ~${VENUE.tempF}°F · ${VENUE.indoor?'Indoor':'Outdoor'}</span>
-  </div>`;
+// ── LOAD FIGHT ──────────────────────────────────────
+function loadFight(idx,targetId){
+  var i=parseInt(idx); var f=FIGHTS[i]; if(!f)return;
+  var tid=targetId||'fightDisplay';
+  var container=document.getElementById(tid); if(!container)return;
+
+  // venue banner
+  var vb=document.getElementById(tid==='liveContent'?'liveVenueBanner':'venueBanner');
+  if(vb)vb.innerHTML='<div class="venue-banner">'
+    +'<span class="venue-item"><strong>Venue:</strong> '+VENUE.name+', '+VENUE.city+'</span>'
+    +'<span class="venue-item"><strong>Altitude:</strong> '+VENUE.altitude+'ft — Sea level, no fatigue factor</span>'
+    +'<span class="venue-item"><strong>Octagon:</strong> '+VENUE.octagon+'</span>'
+    +'<span class="venue-item"><strong>Temp:</strong> ~'+VENUE.tempF+'°F · Indoor</span>'
+    +'</div>';
+
+  container.innerHTML=renderComp(f.a,f.b,f.wm,f.label,f.odds,i);
+  bindListeners(i,f.a,f.b,f.wm,calcProb(f.a,f.b));
+  container.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-// ═══════════════════════════════════════════════════
-// FIGHT SELECTOR
-// ═══════════════════════════════════════════════════
-function selectFight(idx){
-  var i=parseInt(idx);
-  var f=FIGHTS[i];
-  if(!f) return;
-  renderVenueBanner('venueBanner');
-  window._pendingBindings=[];
-  document.getElementById('fightDisplay').innerHTML=renderComp(f.a,f.b,f.wm,f.label,f.odds,i);
-  if(window._pendingBindings&&window._pendingBindings.length){
-    var b=window._pendingBindings[0];
-    bindCompListeners(b.fIdx,b.a,b.b,b.wm,b.prob,b.modelWinner,b.modelLoser,b.modelWinPct);
+// ── LIVE PANEL ──────────────────────────────────────
+function buildLiveList(){
+  var mainEl=document.getElementById('mainList');
+  var preEl=document.getElementById('prelimList');
+  if(!mainEl||!preEl)return;
+
+  function makeRow(f,i){
+    var div=document.createElement('div');
+    div.className='fight-row';
+    var prob=calcProb(f.a,f.b);
+    var favName=prob[0]>=prob[1]?f.a.name.split(' ').slice(-1)[0]:f.b.name.split(' ').slice(-1)[0];
+    var favPct=Math.max(prob[0],prob[1]);
+    var aLast=f.a.name.split(' ').slice(-1)[0];
+    var bLast=f.b.name.split(' ').slice(-1)[0];
+    var weightDiv=f.label.split('·')[0].trim();
+    div.innerHTML='<div>'
+      +'<div class="fr-names">'+aLast+' <span>vs</span> '+bLast+'</div>'
+      +'<div class="fr-sub">'+weightDiv+' · '+f.startET+'</div>'
+      +'</div>'
+      +'<div class="fr-pick">'
+      +'<div class="fr-pct">'+favName+' '+favPct+'%</div>'
+      +'<div class="fr-pct-label">model pick</div>'
+      +'</div>';
+    div.addEventListener('click',function(){
+      // highlight selected
+      document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
+      div.style.borderColor='var(--blue)';
+      div.style.background='var(--bg4)';
+      loadFight(i,'liveContent');
+    });
+    return div;
   }
-}
 
-// ═══════════════════════════════════════════════════
-// LIVE TAB — click fight from ESPN strip to compare
-// ═══════════════════════════════════════════════════
-function selectLiveFight(espnCompId){
-  // Find matching fight in our data by espnId
-  const match=FIGHTS.find(f=>f.espnId===espnCompId);
-  if(match){
-    const idx=FIGHTS.indexOf(match);
-    renderVenueBanner('liveVenueBanner');
-    document.getElementById('liveCompare').innerHTML=renderComp(match.a,match.b,match.wm,match.label,match.odds,idx);
-    document.getElementById('liveCompare').scrollIntoView({behavior:'smooth',block:'start'});
-  }
-}
-
-// ═══════════════════════════════════════════════════
-// SELECT FIGHT FROM LIVE CARD OR STATIC CARD
-// ═══════════════════════════════════════════════════
-function selectFromEspn(idx){
-  try {
-    var i=parseInt(idx);
-    var f=FIGHTS[i];
-    if(!f){ console.error('selectFromEspn: no fight at index',i); return; }
-    renderVenueBanner('liveVenueBanner');
-    var lc=document.getElementById('liveCompare');
-    if(!lc){ console.error('liveCompare div not found'); return; }
-    window._pendingBindings=[];
-    lc.innerHTML=renderComp(f.a,f.b,f.wm,f.label,f.odds,i);
-    // Bind all event listeners now that HTML is in DOM
-    if(window._pendingBindings&&window._pendingBindings.length){
-      var b=window._pendingBindings[0];
-      bindCompListeners(b.fIdx,b.a,b.b,b.wm,b.prob,b.modelWinner,b.modelLoser,b.modelWinPct);
-    }
-    lc.scrollIntoView({behavior:'smooth',block:'start'});
-    var nav=document.getElementById('masterNav');
-    if(nav) nav.value='fight_'+i;
-  } catch(err){
-    console.error('selectFromEspn error:',err);
-    var lc=document.getElementById('liveCompare');
-    if(lc) lc.innerHTML='<div style="padding:1rem;color:#ef4444;font-size:13px">Error: '+err.message+'</div>';
-  }
-}
-
-// ═══════════════════════════════════════════════════
-// TABS
-// ═══════════════════════════════════════════════════
-function showPanel(name){
-  ['liveTab','cardTab','rosterTab','customTab'].forEach(id=>{
-    document.getElementById(id).style.display='none';
+  FIGHTS.forEach(function(f,i){
+    if(f.card==='MAIN')mainEl.appendChild(makeRow(f,i));
+    else preEl.appendChild(makeRow(f,i));
   });
-  if(name==='live'){
-    document.getElementById('liveTab').style.display='block';
-    fetchESPN();startESPNPoll();
-  } else if(name==='card'){
-    document.getElementById('cardTab').style.display='block';
-    stopESPNPoll();
-  } else if(name==='roster'){
-    document.getElementById('rosterTab').style.display='block';
-    stopESPNPoll();
-    if(!document.getElementById('rosterGrid').children.length)filterRoster();
-  } else if(name==='custom'){
-    document.getElementById('customTab').style.display='block';
-    stopESPNPoll();
-  }
 }
+
+// ── NAVIGATION ──────────────────────────────────────
+var PANELS=['livePanel','cardPanel','rosterPanel','customPanel'];
+function showOnly(id){PANELS.forEach(function(p){document.getElementById(p).style.display='none';});document.getElementById(id).style.display='block';}
 
 function handleNav(val){
   if(val==='live'){
-    showPanel('live');
+    showOnly('livePanel');
   } else if(val.startsWith('fight_')){
-    const idx=parseInt(val.replace('fight_',''));
-    showPanel('card');
-    renderVenueBanner('venueBanner');
-    selectFight(idx);
+    var idx=parseInt(val.replace('fight_',''));
+    showOnly('cardPanel');
+    loadFight(idx,'fightDisplay');
   } else if(val==='roster'){
-    showPanel('roster');
+    showOnly('rosterPanel');
+    if(!document.getElementById('rosterGrid').children.length)filterRoster();
   } else if(val==='custom'){
-    showPanel('custom');
+    showOnly('customPanel');
   }
 }
 
-// Legacy switchTab kept for any remaining references
-function switchTab(tab,el){
-  const map={live:'live',card:'card',roster:'roster',custom:'custom'};
-  showPanel(map[tab]||'live');
-}
-
-// ═══════════════════════════════════════════════════
-// ROSTER
-// ═══════════════════════════════════════════════════
-let rBlue=null,rRed=null;
+// ── ROSTER ──────────────────────────────────────────
+var rBlue=null,rRed=null;
 function filterRoster(){
-  const q=(document.getElementById('rosterSearch').value||'').toLowerCase();
-  const div=document.getElementById('divFilter').value;
-  const grid=document.getElementById('rosterGrid');
-  const filtered=ROSTER.filter(f=>(!q||f.name.toLowerCase().includes(q))&&(!div||f.div===div));
-  if(!filtered.length){grid.innerHTML='<div class="no-results">No fighters found</div>';return;}
-  grid.innerHTML=filtered.map(f=>{
-    const iB=rBlue&&rBlue.name===f.name;const iR=rRed&&rRed.name===f.name;
-    return`<div class="fighter-card ${iB?'sel-blue':iR?'sel-red':''}" onclick="toggleRoster('${f.name.replace(/'/g,"\\'")}')">
-      <div class="fc-name">${f.name}${f.champ?'<span class="fc-champ">C</span>':''}</div>
-      <div class="fc-rec">${f.rec} ${f.rank!=='NR'?'· '+f.rank:''}</div>
-      <div class="fc-div">${f.div}</div>
-    </div>`;
-  }).join('');
+  var q=(document.getElementById('rosterSearch').value||'').toLowerCase();
+  var div=document.getElementById('divFilter').value;
+  var grid=document.getElementById('rosterGrid');
+  var filtered=ROSTER.filter(function(f){return(!q||f.name.toLowerCase().includes(q))&&(!div||f.div===div);});
+  grid.innerHTML='';
+  if(!filtered.length){grid.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:2rem;font-style:italic">No fighters found</div>';return;}
+  filtered.forEach(function(f){
+    var iB=rBlue&&rBlue.name===f.name, iR=rRed&&rRed.name===f.name;
+    var card=document.createElement('div');
+    card.className='fighter-card'+(iB?' sel-blue':iR?' sel-red':'');
+    card.innerHTML='<div class="fc-name">'+f.name+(f.champ?'<span class="fc-champ">C</span>':'')+'</div>'
+      +'<div class="fc-rec">'+f.rec+(f.rank&&f.rank!=='NR'?' · '+f.rank:'')+'</div>'
+      +'<div class="fc-div">'+f.div+'</div>';
+    card.addEventListener('click',function(){toggleRoster(f);});
+    grid.appendChild(card);
+  });
 }
-function toggleRoster(name){
-  const f=ROSTER.find(x=>x.name===name);if(!f)return;
-  if(rBlue&&rBlue.name===name)rBlue=null;
-  else if(rRed&&rRed.name===name)rRed=null;
+function toggleRoster(f){
+  if(rBlue&&rBlue.name===f.name)rBlue=null;
+  else if(rRed&&rRed.name===f.name)rRed=null;
   else if(!rBlue)rBlue=f;
   else if(!rRed)rRed=f;
   else{rBlue=rRed;rRed=f;}
   updateRosterBar();filterRoster();
 }
 function updateRosterBar(){
-  const bEl=document.getElementById('selBlueDisplay'),rEl=document.getElementById('selRedDisplay'),btn=document.getElementById('rosterCompareBtn');
-  bEl.innerHTML=rBlue?`<span style="font-weight:500;color:var(--blue)">${rBlue.name}</span><br><span style="font-size:10px;color:var(--text3)">${rBlue.rec}</span>`:'<span class="sel-empty">Tap a fighter</span>';
-  rEl.innerHTML=rRed?`<span style="font-weight:500;color:var(--red)">${rRed.name}</span><br><span style="font-size:10px;color:var(--text3)">${rRed.rec}</span>`:'<span class="sel-empty">Tap a fighter</span>';
-  if(rBlue&&rRed){btn.disabled=false;btn.textContent=`COMPARE: ${rBlue.name.split(' ').slice(-1)[0]} vs ${rRed.name.split(' ').slice(-1)[0]} →`;}
+  var bEl=document.getElementById('selBlueDisplay'),rEl=document.getElementById('selRedDisplay'),btn=document.getElementById('rosterCompareBtn');
+  bEl.innerHTML=rBlue?'<span style="font-weight:500;color:var(--blue)">'+rBlue.name+'</span><br><span style="font-size:10px;color:var(--text3)">'+rBlue.rec+'</span>':'<span class="sel-empty">Tap a fighter</span>';
+  rEl.innerHTML=rRed?'<span style="font-weight:500;color:var(--red)">'+rRed.name+'</span><br><span style="font-size:10px;color:var(--text3)">'+rRed.rec+'</span>':'<span class="sel-empty">Tap a fighter</span>';
+  if(rBlue&&rRed){btn.disabled=false;btn.textContent='COMPARE: '+rBlue.name.split(' ').slice(-1)[0]+' vs '+rRed.name.split(' ').slice(-1)[0]+' →';}
   else{btn.disabled=true;btn.textContent='SELECT TWO FIGHTERS';}
 }
 function runRosterCompare(){
   if(!rBlue||!rRed)return;
-  const a=rBlue,b=rRed;
-  const prob=calcProb(a,b);
-  const winner=prob[0]>=prob[1]?a:b;
-  const wKo=prob[0]>=prob[1]?a.ko:b.ko;const wSub=prob[0]>=prob[1]?a.sub:b.sub;const wDec=prob[0]>=prob[1]?a.dec:b.dec;
-  let method='dec',pick=winner.name.split(' ').slice(-1)[0]+' Decision';
-  if(wKo+wSub>wDec){if(wKo>=wSub){method='ko';pick=winner.name.split(' ').slice(-1)[0]+' KO/TKO';}else{method='sub';pick=winner.name.split(' ').slice(-1)[0]+' Submission';}}
-  const crossDiv=a.div!==b.div?` (${a.div} vs ${b.div})`:'';
-  const wm={pick,method,reason:`${winner.name} projected winner at ${Math.max(prob[0],prob[1])}% based on combined stat model.${crossDiv}`};
+  var a=rBlue,b=rRed;
+  var prob=calcProb(a,b);
+  var mW=prob[0]>=prob[1]?a:b;
+  var ko=prob[0]>=prob[1]?a.ko:b.ko,sub=prob[0]>=prob[1]?a.sub:b.sub,dec=prob[0]>=prob[1]?a.dec:b.dec;
+  var method='dec',pick=mW.name.split(' ').slice(-1)[0]+' Decision';
+  if(ko+sub>dec){if(ko>=sub){method='ko';pick=mW.name.split(' ').slice(-1)[0]+' KO/TKO';}else{method='sub';pick=mW.name.split(' ').slice(-1)[0]+' Submission';}}
+  var wm={pick:pick,method:method,reason:mW.name+' projected winner at '+Math.max(prob[0],prob[1])+'% probability.'};
   var res=document.getElementById('rosterResult');
-  window._pendingBindings=[];
-  res.innerHTML=renderComp(a,b,wm,(a.div+(crossDiv?'/'+b.div:'')+' · Roster Matchup'),null,'c');
-  if(window._pendingBindings&&window._pendingBindings.length){var pb=window._pendingBindings[0];bindCompListeners(pb.fIdx,pb.a,pb.b,pb.wm,pb.prob,pb.modelWinner,pb.modelLoser,pb.modelWinPct);}
+  res.innerHTML=renderComp(a,b,wm,a.div+' · Roster Matchup',null,'c');
+  bindListeners('c',a,b,wm,prob);
   res.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-// ═══════════════════════════════════════════════════
-// CUSTOM COMPARE
-// ═══════════════════════════════════════════════════
-function g(id){return document.getElementById(id).value;}
+// ── CUSTOM ──────────────────────────────────────────
+function gv(id){return document.getElementById(id).value;}
 function runCustom(){
-  const a={name:g('ca-name')||'Fighter A',rec:g('ca-rec'),rank:'Custom',age:parseInt(g('ca-age'))||28,height:'',reach:parseInt(g('ca-reach'))||74,stance:'',style:g('ca-style')||'',slpm:3.5,sacc:parseFloat(g('ca-sacc'))||48,sdef:parseFloat(g('ca-sdef'))||55,tdavg:1.0,tdacc:parseFloat(g('ca-tdacc'))||40,tddef:parseFloat(g('ca-tddef'))||60,subavg:0.8,ko:parseInt(g('ca-ko'))||0,sub:parseInt(g('ca-sub'))||0,dec:parseInt(g('ca-dec'))||0,form:g('ca-form')||'W W W',streak:''};
-  const b={name:g('cb-name')||'Fighter B',rec:g('cb-rec'),rank:'Custom',age:parseInt(g('cb-age'))||31,height:'',reach:parseInt(g('cb-reach'))||72,stance:'',style:g('cb-style')||'',slpm:3.5,sacc:parseFloat(g('cb-sacc'))||43,sdef:parseFloat(g('cb-sdef'))||50,tdavg:1.0,tdacc:parseFloat(g('cb-tdacc'))||35,tddef:parseFloat(g('cb-tddef'))||55,subavg:0.7,ko:parseInt(g('cb-ko'))||0,sub:parseInt(g('cb-sub'))||0,dec:parseInt(g('cb-dec'))||0,form:g('cb-form')||'W W W',streak:''};
-  const prob=calcProb(a,b);
-  const winner=prob[0]>=prob[1]?a:b;
-  const wKo=prob[0]>=prob[1]?a.ko:b.ko;const wSub=prob[0]>=prob[1]?a.sub:b.sub;const wDec=prob[0]>=prob[1]?a.dec:b.dec;
-  let method='dec',pick=winner.name.split(' ')[0]+' Decision';
-  if(wKo+wSub>wDec){if(wKo>=wSub){method='ko';pick=winner.name.split(' ')[0]+' KO/TKO';}else{method='sub';pick=winner.name.split(' ')[0]+' Submission';}}
-  const wm={pick,method,reason:`${a.name} finish rate: ${Math.round((a.ko+a.sub)/(a.ko+a.sub+a.dec+1)*100)}% · ${b.name} finish rate: ${Math.round((b.ko+b.sub)/(b.ko+b.sub+b.dec+1)*100)}%. Model: ${a.name.split(' ')[0]} ${prob[0]}% vs ${b.name.split(' ')[0]} ${prob[1]}%.`};
-  window._pendingBindings=[];
-  document.getElementById('customResult').innerHTML=renderComp(a,b,wm,'Custom matchup',null,'c');
-  if(window._pendingBindings&&window._pendingBindings.length){var pb=window._pendingBindings[0];bindCompListeners(pb.fIdx,pb.a,pb.b,pb.wm,pb.prob,pb.modelWinner,pb.modelLoser,pb.modelWinPct);}
+  var a={name:gv('ca-name')||'Fighter A',rec:gv('ca-rec'),rank:'Custom',age:parseInt(gv('ca-age'))||28,height:'',reach:parseInt(gv('ca-reach'))||74,stance:'',style:gv('ca-style')||'',slpm:3.5,sacc:parseFloat(gv('ca-sacc'))||48,sdef:parseFloat(gv('ca-sdef'))||55,tdavg:1.0,tdacc:parseFloat(gv('ca-tdacc'))||40,tddef:parseFloat(gv('ca-tddef'))||60,subavg:0.8,ko:parseInt(gv('ca-ko'))||0,sub:parseInt(gv('ca-sub'))||0,dec:parseInt(gv('ca-dec'))||0,form:gv('ca-form')||'W W W',streak:''};
+  var b={name:gv('cb-name')||'Fighter B',rec:gv('cb-rec'),rank:'Custom',age:parseInt(gv('cb-age'))||31,height:'',reach:parseInt(gv('cb-reach'))||72,stance:'',style:gv('cb-style')||'',slpm:3.5,sacc:parseFloat(gv('cb-sacc'))||43,sdef:parseFloat(gv('cb-sdef'))||50,tdavg:1.0,tdacc:parseFloat(gv('cb-tdacc'))||35,tddef:parseFloat(gv('cb-tddef'))||55,subavg:0.7,ko:parseInt(gv('cb-ko'))||0,sub:parseInt(gv('cb-sub'))||0,dec:parseInt(gv('cb-dec'))||0,form:gv('cb-form')||'W W W',streak:''};
+  var prob=calcProb(a,b);
+  var mW=prob[0]>=prob[1]?a:b;
+  var ko=prob[0]>=prob[1]?a.ko:b.ko,sub=prob[0]>=prob[1]?a.sub:b.sub,dec=prob[0]>=prob[1]?a.dec:b.dec;
+  var method='dec',pick=mW.name.split(' ')[0]+' Decision';
+  if(ko+sub>dec){if(ko>=sub){method='ko';pick=mW.name.split(' ')[0]+' KO/TKO';}else{method='sub';pick=mW.name.split(' ')[0]+' Submission';}}
+  var wm={pick:pick,method:method,reason:a.name.split(' ')[0]+' finish rate: '+Math.round((a.ko+a.sub)/(a.ko+a.sub+a.dec+1)*100)+'% · '+b.name.split(' ')[0]+' finish rate: '+Math.round((b.ko+b.sub)/(b.ko+b.sub+b.dec+1)*100)+'%.'};
+  var res=document.getElementById('customResult');
+  res.innerHTML=renderComp(a,b,wm,'Custom Matchup',null,'c');
+  bindListeners('c',a,b,wm,prob);
 }
 
-// ═══════════════════════════════════════════════════
-// AI DEEP ANALYSIS
-// ═══════════════════════════════════════════════════
+// ── AI ANALYSIS ──────────────────────────────────────
+function promptKey(){sessionStorage.removeItem('ufc_ak');showKeyModal(function(k){if(k){sessionStorage.setItem('ufc_ak',k);alert('Key saved.');}});}
+function getApiKey(cb){var k=sessionStorage.getItem('ufc_ak');if(k){cb(k);return;}showKeyModal(function(k2){if(k2){sessionStorage.setItem('ufc_ak',k2);cb(k2);}else cb(null);});}
 function showKeyModal(onSubmit){
-  const old=document.getElementById('keyModal');if(old)old.remove();
-  const m=document.createElement('div');m.id='keyModal';
-  m.innerHTML=`<div style="background:#18181c;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.5rem;max-width:420px;width:100%">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px">Anthropic API Key</div>
-    <div style="font-size:12px;color:#a0a0a8;margin-bottom:16px;line-height:1.6">Stored in session memory only. Get one free at <strong style="color:#3b82f6">console.anthropic.com</strong> → API Keys.</div>
-    <input id="keyInput" type="password" placeholder="sk-ant-api03-…" autocomplete="off" style="width:100%;padding:10px 12px;font-size:13px;background:#0a0a0b;color:#f0f0f0;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-family:monospace;margin-bottom:12px;outline:none"/>
-    <div id="keyErr" style="font-size:11px;color:#ef4444;margin-bottom:10px;display:none"></div>
-    <div style="display:flex;gap:8px">
-      <button id="keyCancelBtn" style="flex:1;padding:9px;font-size:13px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#a0a0a8;border-radius:8px;cursor:pointer;font-family:'Barlow',sans-serif">Cancel</button>
-      <button id="keyOkBtn" style="flex:2;padding:9px;font-size:13px;font-weight:600;border:none;background:#3b82f6;color:#fff;border-radius:8px;cursor:pointer;font-family:'Barlow',sans-serif">Start Analysis</button>
-    </div>
-  </div>`;
+  var m=document.createElement('div');m.id='keyModal';
+  m.innerHTML='<div style="background:#18181c;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.5rem;max-width:420px;width:100%">'
+    +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px">Anthropic API Key</div>'
+    +'<div style="font-size:12px;color:#a0a0a8;margin-bottom:16px">Get one free at <strong style="color:#3b82f6">console.anthropic.com</strong> → API Keys</div>'
+    +'<input id="keyInput" type="password" placeholder="sk-ant-…" style="width:100%;padding:10px 12px;font-size:13px;background:#0a0a0b;color:#f0f0f0;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-family:monospace;margin-bottom:12px;outline:none"/>'
+    +'<div id="keyErr" style="font-size:11px;color:#ef4444;margin-bottom:10px;display:none"></div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button id="keyCancelBtn" style="flex:1;padding:9px;font-size:13px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#a0a0a8;border-radius:8px;cursor:pointer;font-family:\'Barlow\',sans-serif">Cancel</button>'
+    +'<button id="keyOkBtn" style="flex:2;padding:9px;font-size:13px;font-weight:600;border:none;background:#3b82f6;color:#fff;border-radius:8px;cursor:pointer;font-family:\'Barlow\',sans-serif">Start Analysis</button>'
+    +'</div></div>';
   document.body.appendChild(m);
-  const inp=document.getElementById('keyInput');
-  const err=document.getElementById('keyErr');
-  setTimeout(()=>inp.focus(),50);
-  document.getElementById('keyCancelBtn').onclick=()=>{m.remove();onSubmit(null);};
-  m.onclick=e=>{if(e.target===m){m.remove();onSubmit(null);}};
-  function submit(){
-    const v=inp.value.trim();
-    if(!v){err.textContent='Please paste your key.';err.style.display='block';return;}
-    if(!v.startsWith('sk-ant-')){err.textContent='Key should start with sk-ant-';err.style.display='block';return;}
+  var inp=document.getElementById('keyInput');
+  setTimeout(function(){inp.focus();},50);
+  document.getElementById('keyCancelBtn').addEventListener('click',function(){m.remove();onSubmit(null);});
+  m.addEventListener('click',function(e){if(e.target===m){m.remove();onSubmit(null);}});
+  document.getElementById('keyOkBtn').addEventListener('click',function(){
+    var v=inp.value.trim();
+    if(!v||!v.startsWith('sk-ant-')){document.getElementById('keyErr').textContent='Key must start with sk-ant-';document.getElementById('keyErr').style.display='block';return;}
     m.remove();onSubmit(v);
-  }
-  document.getElementById('keyOkBtn').onclick=submit;
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit();});
-}
-function getApiKey(cb){
-  const s=sessionStorage.getItem('ufc_ak');
-  if(s){cb(s);return;}
-  showKeyModal(k=>{if(k){sessionStorage.setItem('ufc_ak',k);cb(k);}else cb(null);});
-}
-function promptKey(){
-  sessionStorage.removeItem('ufc_ak');
-  showKeyModal(k=>{if(k){sessionStorage.setItem('ufc_ak',k);alert('Key saved for this session.');}});
+  });
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('keyOkBtn').click();});
 }
 
-async function runDeepAnalysis(btn,aName,bName,aRec,bRec,aStyle,bStyle,aSacc,bSacc,aSdef,bSdef,aTdacc,bTdacc,aKo,bKo,aSub,bSub,probA,probB,pick){
-  const fIdx=btn.id.replace('deepBtn_','');
-  const panelId='aiPanel_'+fIdx;
-  const panel=document.getElementById(panelId);
-  const prompt=`You are an expert MMA analyst. Deep fight breakdown for: ${aName} (${aRec}, ${aStyle}, str acc ${aSacc}%, str def ${aSdef}%, TD acc ${aTdacc}%, KO wins ${aKo}, Sub wins ${aSub}) vs ${bName} (${bRec}, ${bStyle}, str acc ${bSacc}%, str def ${bSdef}%, TD acc ${bTdacc}%, KO wins ${bKo}, Sub wins ${bSub}). Win probability: ${aName.split(' ')[0]} ${probA}% — ${bName.split(' ')[0]} ${probB}%. Predicted method: ${pick}. Venue: Seattle, Climate Pledge Arena, 175ft altitude (near sea level), indoor, standard 30ft octagon — no altitude fatigue factor.\n\nCover:\n1. 3 key X-factors\n2. Each fighter's path to victory\n3. Round-by-round prediction\n4. Final verdict with confidence\n\nSharp, punchy, stat-backed. Under 400 words.`;
-  getApiKey(async(apiKey)=>{
+async function runDeepAnalysis(btn,a,b,prob,wm){
+  var fIdx=btn.id.replace('deepBtn_','');
+  var panelId='aiPanel_'+fIdx;
+  var panel=document.getElementById(panelId); if(!panel)return;
+  var prompt='You are an expert MMA analyst. Deep breakdown for: '+a.name+' ('+a.rec+', '+a.style+', str acc '+a.sacc+'%, str def '+a.sdef+'%, KO '+a.ko+', Sub '+a.sub+') vs '+b.name+' ('+b.rec+', '+b.style+', str acc '+b.sacc+'%, str def '+b.sdef+'%, KO '+b.ko+', Sub '+b.sub+'). Win probability: '+a.name.split(' ')[0]+' '+prob[0]+'% — '+b.name.split(' ')[0]+' '+prob[1]+'%. Predicted: '+wm.pick+'. Venue: Seattle Climate Pledge Arena, 175ft altitude (sea level), indoor, standard 30ft octagon.\n\nCover: 1) 3 key X-factors 2) Each fighter path to victory 3) Round-by-round prediction 4) Final verdict. Sharp, stat-backed, under 400 words.';
+  getApiKey(async function(apiKey){
     if(!apiKey)return;
-    btn.disabled=true;btn.innerHTML='<span>⚡</span> Analyzing…';
-    panel.innerHTML=`<div class="ai-panel"><div class="ai-panel-header"><span class="ai-label">AI Deep Analysis</span><span class="ai-model-badge">Claude Sonnet</span></div><div class="ai-thinking">Generating breakdown<div class="ai-thinking-dots"><span></span><span></span><span></span></div></div></div>`;
+    btn.disabled=true;btn.textContent='⚡ Analyzing…';
+    panel.innerHTML='<div class="ai-thinking">Generating breakdown <span style="margin-left:4px">…</span></div>';
     try{
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,stream:true,messages:[{role:'user',content:prompt}]})});
-      if(!res.ok){let e=`HTTP ${res.status}`;try{const j=await res.json();e=(j.error&&j.error.message)||e;}catch{}throw new Error(e);}
-      panel.innerHTML=`<div class="ai-panel"><div class="ai-panel-header"><span class="ai-label">AI Deep Analysis</span><span class="ai-model-badge">Claude Sonnet</span><button onclick="sessionStorage.removeItem('ufc_ak')" style="margin-left:auto;font-size:10px;padding:2px 8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#5a5a65;border-radius:4px;cursor:pointer">Change key</button></div><div class="ai-content" id="aiContent_${fIdx}"></div></div>`;
-      const contentEl=document.getElementById('aiContent_'+fIdx);
-      const reader=res.body.getReader();const dec=new TextDecoder();let buf='',full='';
-      while(true){const{done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();for(const line of lines){if(!line.startsWith('data: '))continue;const data=line.slice(6).trim();if(data==='[DONE]')continue;try{const evt=JSON.parse(data);if(evt.type==='content_block_delta'&&evt.delta?.type==='text_delta'){full+=evt.delta.text;contentEl.innerHTML=formatAIText(full)+'<span style="opacity:.5">▋</span>';}}catch{}}}
-      contentEl.innerHTML=formatAIText(full);
-      btn.innerHTML='<span>⚡</span> Regenerate';btn.disabled=false;
+      var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,stream:true,messages:[{role:'user',content:prompt}]})});
+      if(!res.ok){var e=await res.json();throw new Error((e.error&&e.error.message)||'HTTP '+res.status);}
+      panel.innerHTML='<div class="ai-content" id="aiTxt_'+fIdx+'"></div>';
+      var ct=document.getElementById('aiTxt_'+fIdx);
+      var reader=res.body.getReader(),dec=new TextDecoder(),buf='',full='';
+      while(true){
+        var rd=await reader.read(); if(rd.done)break;
+        buf+=dec.decode(rd.value,{stream:true});
+        var lines=buf.split('\n');buf=lines.pop();
+        for(var i=0;i<lines.length;i++){
+          var ln=lines[i]; if(!ln.startsWith('data: '))continue;
+          var data=ln.slice(6).trim(); if(data==='[DONE]')continue;
+          try{var ev=JSON.parse(data);if(ev.type==='content_block_delta'&&ev.delta&&ev.delta.type==='text_delta'){full+=ev.delta.text;ct.innerHTML=full.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')+'<span style="opacity:.5">▋</span>';}}catch(ex){}
+        }
+      }
+      ct.innerHTML=full.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+      btn.innerHTML='⚡ Regenerate';btn.disabled=false;
     }catch(err){
-      const msg=err.message||'Unknown';const is401=msg.includes('401')||msg.toLowerCase().includes('auth');
+      var is401=err.message.includes('401')||err.message.toLowerCase().includes('auth');
       if(is401)sessionStorage.removeItem('ufc_ak');
-      panel.innerHTML=`<div class="ai-panel"><div class="ai-error"><strong>${is401?'Invalid key — cleared.':msg}</strong><br><br>${is401?'Click ⚡ again to re-enter your key from console.anthropic.com → API Keys.':'Check billing at console.anthropic.com → Billing.'}</div></div>`;
-      btn.innerHTML='<span>⚡</span> Deep AI Analysis';btn.disabled=false;
+      panel.innerHTML='<div style="color:var(--red);font-size:12px;padding:8px">'+err.message+(is401?' — key cleared, click again to re-enter':'')+'</div>';
+      btn.innerHTML='⚡ Deep AI Analysis';btn.disabled=false;
     }
   });
 }
 
-function formatAIText(t){
-  return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<strong style="color:var(--text);font-size:13px;display:block;margin-top:10px;margin-bottom:4px">$1</strong>').replace(/^## (.+)$/gm,'<strong style="color:var(--text);font-size:14px;display:block;margin-top:12px;margin-bottom:5px">$1</strong>').replace(/^# (.+)$/gm,'<strong style="color:var(--text);font-size:15px;display:block;margin-top:12px;margin-bottom:6px">$1</strong>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
-}
-
-// ═══════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════
+// ── INIT ────────────────────────────────────────────
 updateAccChip();
-// Start on Live Card
+buildLiveList();
+showOnly('livePanel');
 document.getElementById('masterNav').value='live';
-showPanel('live');
 </script>
 </body>
 </html>

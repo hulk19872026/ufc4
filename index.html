@@ -38,7 +38,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .espn-refresh-btn{font-size:10px;padding:3px 9px;border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:6px;cursor:pointer;font-family:'Barlow',sans-serif}
 .espn-refresh-btn:hover{background:var(--bg4)}
 .espn-fights{display:flex;flex-direction:column;gap:6px}
-.espn-fight{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:8px 10px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)}
+.espn-fight{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:8px 10px;background:var(--bg4);border-radius:8px;border:1px solid var(--border);transition:border-color .15s,background .15s}
+.espn-fight[onclick]:hover{background:var(--bg3);border-color:var(--blue)}
 .espn-fight.live-fight{border-color:var(--red);background:rgba(239,68,68,.06)}
 .espn-fight.completed{opacity:.7}
 .ef-name{font-size:12px;font-weight:500}
@@ -883,13 +884,16 @@ function renderESPN(d){
 
     // Find matching fight in our FIGHTS array by espnId
     const fIdx=FIGHTS.findIndex(f=>f.espnId===c.id);
-    const clickable=fIdx>=0?`onclick="selectFromEspn(${fIdx})" style="cursor:pointer"`:'';
+    const hasMatch = fIdx >= 0;
+    const clickable = hasMatch
+      ? `onclick="selectFromEspn(${fIdx})" style="cursor:pointer;border-color:rgba(59,130,246,.3)" title="Tap to see full stats & prediction"`
+      : '';
     return`<div class="espn-fight ${isLive?'live-fight':isDone?'completed':''}" ${clickable}>
       <div class="ef-left">
         <div class="ef-name">${aName}${aWon?'<span class="winner-tag">W</span>':''}</div>
         <div class="ef-rec">${aRec}</div>
       </div>
-      <div class="ef-center">${statusHtml}<div class="ef-weight">${weight}</div></div>
+      <div class="ef-center">${statusHtml}<div class="ef-weight">${weight}</div>${hasMatch?'<div style="font-size:9px;color:var(--blue);margin-top:3px;letter-spacing:.03em">tap for stats</div>':''}</div>
       <div class="ef-right">
         <div class="ef-name">${bName}${bWon?'<span class="winner-tag">W</span>':''}</div>
         <div class="ef-rec">${bRec}</div>
@@ -1380,14 +1384,19 @@ function selectLiveFight(espnCompId){
 // SELECT FIGHT FROM LIVE CARD OR STATIC CARD
 // ═══════════════════════════════════════════════════
 function selectFromEspn(idx){
-  // Sync dropdown to the selected fight
-  const nav=document.getElementById('masterNav');
-  if(nav)nav.value='fight_'+idx;
-  // Switch to card panel and show fight
-  showPanel('card');
-  renderVenueBanner('venueBanner');
-  selectFight(idx);
-  document.getElementById('fightDisplay').scrollIntoView({behavior:'smooth',block:'start'});
+  const f = FIGHTS[parseInt(idx)];
+  if(!f) return;
+
+  // Render directly into liveCompare so it appears on the Live Card tab
+  // without navigating away — user stays on the same page
+  renderVenueBanner('liveVenueBanner');
+  document.getElementById('liveCompare').innerHTML =
+    renderComp(f.a, f.b, f.wm, f.label, f.odds, parseInt(idx));
+  document.getElementById('liveCompare').scrollIntoView({behavior:'smooth', block:'start'});
+
+  // Also sync the master dropdown in case user switches tabs
+  const nav = document.getElementById('masterNav');
+  if(nav) nav.value = 'fight_' + idx;
 }
 
 // ═══════════════════════════════════════════════════

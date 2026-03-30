@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>UFCStats — Fight Comparator</title>
+<title>UFCStats — UFC Fight Night 272</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥊</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -253,24 +253,19 @@ body{font-family:'Barlow',sans-serif;background:#0a0a0b;color:#f0f0f0;min-height
   <div class="nav-wrap">
     <select id="masterNav" onchange="handleNav(this.value)">
       <optgroup label="── LIVE CARD ──">
-        <option value="live">📡 UFC Fight Night 271 — Live Card</option>
+        <option value="live">🥊 UFC Fight Night 272 — Apr 5, Las Vegas</option>
       </optgroup>
-      <optgroup label="── FN 271 · MAIN CARD · 8 PM ET ──">
-        <option value="fight_0">🏆 Adesanya vs. Pyfer — MW Main Event</option>
-        <option value="fight_1">Grasso vs. Barber — W. Flyweight</option>
-        <option value="fight_2">Chiesa vs. Price — Welterweight</option>
-        <option value="fight_3">Erosa vs. Douglas — Featherweight</option>
-        <option value="fight_4">Abdul-Malik vs. Belgaroui — Middleweight</option>
-        <option value="fight_5">McKinney vs. Nelson — Lightweight</option>
+      <optgroup label="── FN 272 · MAIN CARD · 8 PM ET ──">
+        <option value="fight_0">🏆 Moicano vs. Duncan — Lightweight · 5 rds</option>
+        <option value="fight_1">Jandiroba vs. Ricci — W. Strawweight</option>
+        <option value="fight_2">Ewing vs. Estevam — Bantamweight</option>
       </optgroup>
-      <optgroup label="── FN 271 · PRELIM CARD · 5 PM ET ──">
-        <option value="fight_6">Bahamondes vs. Musayev — Lightweight</option>
-        <option value="fight_7">Hooper vs. Gibson Jr. — Lightweight</option>
-        <option value="fight_8">Tybura vs. Fortune — Heavyweight</option>
-        <option value="fight_9">O'Neill vs. Fernandes — W. Flyweight</option>
-        <option value="fight_10">Stirling vs. Lopes — Light Heavyweight</option>
-        <option value="fight_11">Simon vs. Yanez — Bantamweight</option>
-        <option value="fight_12">Thainara vs. Brasil — W. Strawweight</option>
+      <optgroup label="── FN 272 · PRELIM CARD · 5 PM ET ──">
+        <option value="fight_3">Pat vs. Petersen — Heavyweight</option>
+        <option value="fight_4">Delano vs. Ruchala — Featherweight</option>
+        <option value="fight_5">Costa vs. Nicoll — Flyweight</option>
+        <option value="fight_6">Pereira vs. Cowan — W. Bantamweight</option>
+        <option value="fight_7">Barbosa vs. Gatto — W. Flyweight</option>
       </optgroup>
       <optgroup label="── ROSTER ──">
         <option value="roster">👥 Roster Matchup — Pick Any Two</option>
@@ -287,8 +282,8 @@ body{font-family:'Barlow',sans-serif;background:#0a0a0b;color:#f0f0f0;min-height
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div>
-          <div id="liveEventHeader" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--text);letter-spacing:.03em">UFC Fight Night</div>
-          <div id="liveEventSub" style="font-size:10px;color:var(--text3);margin-top:2px"></div>
+          <div id="liveEventHeader" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--text);letter-spacing:.03em">UFC Fight Night 272 · Moicano vs. Duncan</div>
+          <div id="liveEventSub" style="font-size:10px;color:var(--text3);margin-top:2px">Sat, Apr 5, 2026 · Meta APEX · Las Vegas, NV</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span id="liveRefreshBadge" style="font-size:10px;color:var(--text3)">Loading…</span>
@@ -395,84 +390,55 @@ body{font-family:'Barlow',sans-serif;background:#0a0a0b;color:#f0f0f0;min-height
 
 <script>
 const FIGHTS = [
-  {label:"Middleweight · Main Event · 5 rds · 8 PM ET",card:"MAIN",espnId:"401838359",
-   startET:"8:00 PM ET",
-   odds:{aLine:"-130",bLine:"+110",note:"DraftKings",props:["Adesanya dec +165","Pyfer KO +275","Over 3.5 rds -125"]},
-   a:{name:"Israel Adesanya",espnAthleteId:"4285679",nick:"The Last Stylebender",country:"NGA/NZ",rec:"24-5-0",rank:"#4 MW",age:36,height:"6'4\"",reach:80,stance:"Switch",style:"Kickboxing / Counter",slpm:4.02,sacc:51.6,sdef:56,tdavg:0.05,tdacc:11.1,tddef:50,subavg:0.14,ko:10,sub:0,dec:14,form:"L W L L L",streak:"3-loss streak",talent:{tier:"elite",striking:5,grappling:3,cardio:4,chin:3,wrestling:2,overall:4},wins:[{name:"Alex Pereira",detail:"KO Rd 2 — UFC 287",hof:false,champ:true},{name:"Robert Whittaker",detail:"KO Rd 2 — UFC 243",hof:false,champ:true},{name:"Anderson Silva",detail:"Decision — UFC 234",hof:true,champ:false},{name:"Kelvin Gastelum",detail:"Decision — UFC 236",hof:false,champ:false}]},
-   b:{name:"Joe Pyfer",espnAthleteId:"4684135",nick:"Bodybagz",country:"USA",rec:"15-3-0",rank:"#14 MW",age:29,height:"6'2\"",reach:75,stance:"Orthodox",style:"Wrestling / Pressure",slpm:3.47,sacc:44.5,sdef:53,tdavg:1.23,tdacc:33.3,tddef:50,subavg:1.02,ko:9,sub:4,dec:2,form:"W W W L W",streak:"3-win streak",talent:{tier:"contender",striking:4,grappling:4,cardio:3,chin:4,wrestling:4,overall:3},wins:[{name:"Kelvin Gastelum",detail:"Decision — UFC 316 2025",hof:false,champ:false},{name:"Abus Magomedov",detail:"Sub Rd 2 — UFC 320",hof:false,champ:false},{name:"Gerald Meerschaert",detail:"TKO Rd 1 — UFC 287",hof:false,champ:false}]},
-   wm:{pick:"Pyfer KO/TKO",method:"ko",reason:"87% finish rate, 3-fight win streak, pressure style exploits Adesanya's durability issues. Likely Rd 2-3 overhand right."}},
+  // ── MAIN CARD · 8 PM ET ──────────────────────────────
+  {label:"Lightweight · Main Event · 5 rds · 8 PM ET",card:"MAIN",startET:"8:00 PM ET",
+   odds:{aLine:"-160",bLine:"+135",note:"DraftKings",props:["Moicano sub +250","Over 2.5 rds -140","Distance -180"]},
+   a:{name:"Renato Moicano",nick:"Money",rec:"20-7-1",rank:"#10 LW",age:36,height:'5\'11"',reach:72,stance:"Orthodox",style:"BJJ / Grappling",slpm:4.17,sacc:55.75,sdef:63,tdavg:1.67,tdacc:41.67,tddef:73,subavg:0.5,ko:2,sub:10,dec:8,form:"L L W W W",streak:"2-loss streak",talent:{tier:"elite",striking:4,grappling:5,cardio:4,chin:3,wrestling:4,overall:4},wins:[{name:"Benoit Saint-Denis",detail:"KO Rd 2 — UFC Sept 2024",hof:false,champ:false},{name:"Jalin Turner",detail:"KO Rd 2 — UFC 300",hof:false,champ:false},{name:"Drew Dober",detail:"Decision — UFC Feb 2024",hof:false,champ:false}]},
+   b:{name:"Chris Duncan",nick:"The Scottish Prospect",rec:"15-2-0",rank:"NR",age:32,height:'5\'10"',reach:71,stance:"Orthodox",style:"Pressure / Wrestling",slpm:5.02,sacc:48.37,sdef:58,tdavg:3.27,tdacc:42.86,tddef:62,subavg:0.65,ko:5,sub:4,dec:6,form:"W W W W W",streak:"5-win streak",talent:{tier:"contender",striking:4,grappling:3,cardio:4,chin:4,wrestling:4,overall:4},wins:[{name:"Jordan Vucenic",detail:"Decision — BAMMA 2024",hof:false,champ:false}]},
+   wm:{pick:"Moicano Decision",method:"dec",reason:"Moicano's elite BJJ and experience advantage in a 5-round fight. Duncan's pressure will be neutralized on the ground. Submission or decision win for Moicano."}},
 
-  {label:"W. Flyweight · Co-Main · 8 PM ET",card:"MAIN",espnId:"401851845",startET:"8:00 PM ET",
-   odds:{aLine:"+145",bLine:"-175",note:"DraftKings",props:["Barber dec +115","Distance -350","Grasso sub +450"]},
-   a:{name:"Alexa Grasso",espnAthleteId:"3136287",nick:"",country:"MEX",rec:"16-5-1",rank:"#3 FW",age:32,height:"5'5\"",reach:66,stance:"Orthodox",style:"Muay Thai / Submission",slpm:4.11,sacc:41,sdef:58,tdavg:0.41,tdacc:35,tddef:54,subavg:0.7,ko:4,sub:2,dec:10,form:"L L L W W",streak:"3-loss streak",talent:{tier:"elite",striking:4,grappling:5,cardio:4,chin:4,wrestling:3,overall:4},wins:[{name:"Valentina Shevchenko",detail:"Sub Rd 4 — UFC 285",hof:false,champ:true},{name:"Maycee Barber",espnAthleteId:"4246307",detail:"Decision — UFC 258 2021",hof:false,champ:false}]},
-   b:{name:"Maycee Barber",nick:"The Future",country:"USA",rec:"15-2-0",rank:"#5 FW",age:27,height:"5'5\"",reach:65,stance:"Switch",style:"Wrestling / Striking",slpm:4.61,sacc:53,sdef:54,tdavg:1.58,tdacc:45,tddef:51,subavg:0.5,ko:6,sub:2,dec:7,form:"W W W W L",streak:"4-win streak",talent:{tier:"contender",striking:4,grappling:3,cardio:4,chin:4,wrestling:4,overall:4},wins:[{name:"Karine Silva",detail:"Decision — UFC 323",hof:false,champ:false},{name:"Katlyn Cerminara",detail:"Decision — UFC 299",hof:false,champ:false}]},
-   wm:{pick:"Barber Decision",method:"dec",reason:"Volume edge (4.61/min, 53% acc), 4-fight streak and wrestling advantage should outwork Grasso over 3 rounds."}},
+  {label:"Women's Strawweight · Main Card · 8 PM ET",card:"MAIN",startET:"8:00 PM ET",
+   odds:{aLine:"-135",bLine:"+115",note:"DraftKings",props:["Distance -160","Jandiroba sub +200","Ricci decision +250"]},
+   a:{name:"Virna Jandiroba",nick:"Carcará",rec:"22-4-0",rank:"#4 SW",age:34,height:'5\'4"',reach:64,stance:"Orthodox",style:"BJJ / Striking",slpm:3.8,sacc:47,sdef:58,tdavg:2.0,tdacc:42,tddef:64,subavg:1.6,ko:3,sub:11,dec:8,form:"W W L W W",streak:"2-win streak",talent:{tier:"contender",striking:3,grappling:5,cardio:4,chin:4,wrestling:3,overall:4},wins:[{name:"Loopy Godinez",detail:"Decision — UFC 2024",hof:false,champ:false},{name:"Angela Hill",detail:"Decision — UFC 2023",hof:false,champ:false}]},
+   b:{name:"Tabatha Ricci",nick:"",rec:"12-3-0",rank:"#6 SW",age:26,height:'5\'6"',reach:66,stance:"Orthodox",style:"Muay Thai / Grappling",slpm:3.2,sacc:44,sdef:55,tdavg:1.4,tdacc:38,tddef:58,subavg:0.5,ko:2,sub:3,dec:7,form:"W W L W W",streak:"2-win streak",talent:{tier:"contender",striking:4,grappling:3,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Luana Pinheiro",detail:"Decision — UFC 2024",hof:false,champ:false}]},
+   wm:{pick:"Jandiroba Decision",method:"dec",reason:"Jandiroba's elite BJJ and experience edge. 11 career submissions. 3-round technical fight goes to the scorecards."}},
 
-  {label:"Welterweight · 8 PM ET · Chiesa Retirement",card:"MAIN",espnId:"401855749",startET:"8:00 PM ET",
-   odds:{aLine:"-500",bLine:"+375",note:"DraftKings",props:["Chiesa sub +200","Distance +220","Price KO +500"]},
-   a:{name:"Michael Chiesa",espnAthleteId:"2960681",nick:"Maverick",country:"USA",rec:"19-7-0",rank:"NR",age:36,height:"6'1\"",reach:76,stance:"Orthodox",style:"Wrestling / BJJ",slpm:2.8,sacc:38,sdef:51,tdavg:1.9,tdacc:44,tddef:62,subavg:1.1,ko:2,sub:10,dec:7,form:"L W L L W",streak:"Mixed",talent:{tier:"veteran",striking:2,grappling:5,cardio:3,chin:3,wrestling:5,overall:3},wins:[{name:"Kevin Holland",detail:"Decision — UFC 2021",hof:false,champ:false},{name:"Diego Sanchez",detail:"Sub Rd 1 — UFC 239",hof:true,champ:false}]},
-   b:{name:"Niko Price",espnAthleteId:"3936793",nick:"The Hybrid",country:"USA",rec:"15-8-1",rank:"NR",age:32,height:"6'1\"",reach:76,stance:"Switch",style:"Muay Thai / Submission",slpm:4.3,sacc:46,sdef:44,tdavg:0.6,tdacc:30,tddef:55,subavg:0.9,ko:8,sub:4,dec:3,form:"L W L W W",streak:"2-win streak",talent:{tier:"veteran",striking:4,grappling:3,cardio:3,chin:4,wrestling:2,overall:3},wins:[{name:"Alex Oliveira",detail:"Decision — 2020",hof:false,champ:false}]},
-   wm:{pick:"Chiesa Submission",method:"sub",reason:"Late replacement. Chiesa's BJJ (10 subs), home state crowd, retirement motivation. Rear naked choke Rd 2."}},
+  {label:"Bantamweight · Main Card · 8 PM ET",card:"MAIN",startET:"8:00 PM ET",
+   odds:{aLine:"+130",bLine:"-155",note:"DraftKings",props:["Estevam KO -115","Under 1.5 rds +145","Distance +280"]},
+   a:{name:"Ethyn Ewing",nick:"",rec:"9-2-0",rank:"NR",age:28,height:'5\'7"',reach:68,stance:"Orthodox",style:"Boxing / Striking",slpm:4.8,sacc:50,sdef:55,tdavg:0.8,tdacc:35,tddef:60,subavg:0.4,ko:5,sub:1,dec:3,form:"W L W W L",streak:"Mixed",talent:{tier:"prospect",striking:4,grappling:2,cardio:3,chin:3,wrestling:2,overall:3},wins:[{name:"Ricky Turcios",detail:"KO — Dana White DWCS 2024",hof:false,champ:false}]},
+   b:{name:"Rafael Estevam",nick:"Popo",rec:"14-0-0",rank:"NR",age:25,height:'5\'5"',reach:66,stance:"Orthodox",style:"BJJ / Grappling",slpm:3.5,sacc:48,sdef:60,tdavg:3.2,tdacc:55,tddef:70,subavg:1.8,ko:4,sub:7,dec:3,form:"W W W W W",streak:"Unbeaten",talent:{tier:"prospect",striking:3,grappling:5,cardio:4,chin:4,wrestling:5,overall:4},wins:[{name:"Saul Robledo",detail:"Sub — UFC debut 2025",hof:false,champ:false}]},
+   wm:{pick:"Estevam Submission",method:"sub",reason:"Unbeaten, elite BJJ at 14-0. 55% TD acc, 1.8 sub avg. Rd 2-3 submission finish."}},
 
-  {label:"Featherweight · 8 PM ET",card:"MAIN",espnId:"401860059",startET:"8:00 PM ET",
-   odds:{aLine:"+215",bLine:"-265",note:"DraftKings",props:["Over 1.5 rds +145","Douglas dec -140","Erosa sub +300"]},
-   a:{name:"Julian Erosa",espnAthleteId:"3955577",nick:"Juicy J",country:"USA",rec:"31-13-0",rank:"NR",age:34,height:"5'9\"",reach:72,stance:"Orthodox",style:"Submission / Striking",slpm:3.9,sacc:42,sdef:50,tdavg:1.1,tdacc:36,tddef:58,subavg:1.4,ko:10,sub:15,dec:6,form:"W L W W L",streak:"Mixed",talent:{tier:"veteran",striking:3,grappling:4,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Cub Swanson",detail:"KO — UFC 2022",hof:false,champ:false}]},
-   b:{name:"Lerryan Douglas",espnAthleteId:"4958170",nick:"",country:"BRA",rec:"13-5-0",rank:"NR",age:28,height:"5'8\"",reach:70,stance:"Orthodox",style:"BJJ / Striking",slpm:3.5,sacc:40,sdef:52,tdavg:0.9,tdacc:32,tddef:60,subavg:1.1,ko:4,sub:6,dec:3,form:"W W L W W",streak:"2-win streak",talent:{tier:"prospect",striking:3,grappling:4,cardio:3,chin:4,wrestling:3,overall:3},wins:[{name:"Chris Padilla",detail:"Sub — UFC debut 2025",hof:false,champ:false}]},
-   wm:{pick:"Erosa Submission",method:"sub",reason:"15 career subs and high output edge. Sub avg of 1.4 is elite. Rd 2-3 submission win."}},
+  // ── PRELIMS · 5 PM ET ────────────────────────────────
+  {label:"Heavyweight · Prelim · 5 PM ET",card:"PRELIM",startET:"5:00 PM ET",
+   odds:{aLine:"-200",bLine:"+165",note:"DraftKings",props:["Pat KO -130","Under 1.5 rds +110"]},
+   a:{name:"Guilherme Pat",nick:"",rec:"6-0-0",rank:"NR",age:27,height:'6\'2"',reach:79,stance:"Orthodox",style:"Power Striking / Wrestling",slpm:4.2,sacc:54,sdef:60,tdavg:1.8,tdacc:48,tddef:65,subavg:0.4,ko:5,sub:0,dec:1,form:"W W W W W",streak:"Unbeaten",talent:{tier:"prospect",striking:4,grappling:2,cardio:3,chin:4,wrestling:3,overall:3},wins:[{name:"Tanner Boser",detail:"TKO — DWCS 2025",hof:false,champ:false}]},
+   b:{name:"Thomas Petersen",nick:"",rec:"10-4-0",rank:"NR",age:32,height:'6\'3"',reach:78,stance:"Orthodox",style:"Wrestling / Striking",slpm:3.5,sacc:45,sdef:52,tdavg:2.2,tdacc:44,tddef:55,subavg:0.3,ko:4,sub:2,dec:4,form:"W L W L W",streak:"Mixed",talent:{tier:"veteran",striking:3,grappling:3,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Don'Tale Mayes",detail:"Decision — LFA 2024",hof:false,champ:false}]},
+   wm:{pick:"Pat KO/TKO",method:"ko",reason:"Unbeaten prospect, power striker, 83% finish rate. Early KO Rd 1-2."}},
 
-  {label:"Middleweight · 8 PM ET",card:"MAIN",espnId:"401855750",startET:"8:00 PM ET",
-   odds:{aLine:"-120",bLine:"+100",note:"DraftKings",props:["Distance -115","Abdul-Malik dec +150","KO finish +200"]},
-   a:{name:"Mansur Abdul-Malik",espnAthleteId:"5211221",nick:"",country:"USA",rec:"9-0-1",rank:"NR",age:27,height:"6'2\"",reach:77,stance:"Orthodox",style:"Striking / Grappling",slpm:3.2,sacc:48,sdef:60,tdavg:1.4,tdacc:40,tddef:65,subavg:0.8,ko:5,sub:2,dec:2,form:"W W W W D",streak:"Unbeaten",talent:{tier:"prospect",striking:4,grappling:3,cardio:4,chin:4,wrestling:4,overall:4},wins:[{name:"Ange Loosa",detail:"Decision — UFC 2024",hof:false,champ:false}]},
-   b:{name:"Yousri Belgaroui",espnAthleteId:"5149815",nick:"",country:"NED",rec:"9-3-0",rank:"NR",age:30,height:"6'1\"",reach:74,stance:"Orthodox",style:"Kickboxing",slpm:3.8,sacc:44,sdef:52,tdavg:0.5,tdacc:28,tddef:55,subavg:0.4,ko:6,sub:1,dec:2,form:"W L W W L",streak:"Mixed",talent:{tier:"veteran",striking:4,grappling:2,cardio:3,chin:3,wrestling:2,overall:3},wins:[{name:"Marc-André Barriault",detail:"Decision — UFC 2024",hof:false,champ:false}]},
-   wm:{pick:"Abdul-Malik TKO",method:"ko",reason:"Unbeaten prospect. 60% str def, 65% TD def. TKO finish Rd 2-3."}},
+  {label:"Featherweight · Prelim · 5 PM ET",card:"PRELIM",startET:"5:00 PM ET",
+   odds:{aLine:"-125",bLine:"+105",note:"DraftKings",props:["Distance -130","KO finish +220"]},
+   a:{name:"Jose Delano",nick:"",rec:"16-3-0",rank:"NR",age:29,height:'5\'9"',reach:71,stance:"Orthodox",style:"Muay Thai / BJJ",slpm:4.1,sacc:49,sdef:56,tdavg:0.9,tdacc:36,tddef:62,subavg:0.7,ko:7,sub:5,dec:4,form:"W W W W L",streak:"1-loss",talent:{tier:"contender",striking:4,grappling:3,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Joanderson Brito",detail:"Decision — UFC 2025",hof:false,champ:false}]},
+   b:{name:"Robert Ruchala",nick:"",rec:"11-2-0",rank:"NR",age:28,height:'5\'8"',reach:69,stance:"Orthodox",style:"Boxing / Pressure",slpm:4.5,sacc:51,sdef:55,tdavg:0.6,tdacc:30,tddef:58,subavg:0.3,ko:8,sub:1,dec:2,form:"W W W W W",streak:"5-win streak",talent:{tier:"contender",striking:4,grappling:2,cardio:4,chin:4,wrestling:2,overall:3},wins:[{name:"Lucas Alexander",detail:"KO — KSW 2024",hof:false,champ:false}]},
+   wm:{pick:"Ruchala KO/TKO",method:"ko",reason:"5-fight win streak, 8 career KOs, pressure style. Delano's chin has been tested. Early finish."}},
 
-  {label:"Lightweight · Main Card · 8 PM ET",card:"MAIN",espnId:"401861019",startET:"8:00 PM ET",
-   odds:{aLine:"-170",bLine:"+140",note:"DraftKings",props:["McKinney KO +165","Under 1.5 rds +120","Distance +220"]},
-   a:{name:"Terrance McKinney",espnAthleteId:"4425604",nick:"T.Wrecks",country:"USA",rec:"17-8-0",rank:"NR",age:29,height:"5'9\"",reach:70,stance:"Orthodox",style:"Wrestling / BJJ",slpm:4.5,sacc:47,sdef:49,tdavg:2.1,tdacc:48,tddef:57,subavg:1.3,ko:7,sub:6,dec:4,form:"W L W W L",streak:"Mixed",talent:{tier:"contender",striking:4,grappling:4,cardio:3,chin:3,wrestling:4,overall:3},wins:[{name:"Drew Dober",detail:"KO Rd 1 — UFC 2023",hof:false,champ:false}]},
-   b:{name:"Kyle Nelson",espnAthleteId:"4408436",nick:"The Monster",country:"CAN",rec:"17-6-1",rank:"NR",age:33,height:"5'8\"",reach:72,stance:"Orthodox",style:"Boxing / BJJ",slpm:3.6,sacc:43,sdef:53,tdavg:0.8,tdacc:33,tddef:60,subavg:0.7,ko:10,sub:4,dec:3,form:"W W L W L",streak:"Mixed",talent:{tier:"veteran",striking:3,grappling:3,cardio:3,chin:4,wrestling:2,overall:3},wins:[{name:"Nate Landwehr",detail:"KO Rd 1 — UFC 2023",hof:false,champ:false}]},
-   wm:{pick:"McKinney Submission",method:"sub",reason:"48% TD accuracy, 1.3 sub avg. Chaos fight early — submission Rd 1-2."}},
+  {label:"Flyweight · Prelim · 5 PM ET",card:"PRELIM",startET:"5:00 PM ET",
+   odds:{aLine:"-180",bLine:"+150",note:"DraftKings",props:["Distance -115","Costa dec -120","Nicoll upset +300"]},
+   a:{name:"Alessandro Costa",nick:"",rec:"14-5-0",rank:"NR",age:30,height:'5\'4"',reach:65,stance:"Orthodox",style:"BJJ / Striking",slpm:3.6,sacc:46,sdef:57,tdavg:2.4,tdacc:48,tddef:65,subavg:1.0,ko:4,sub:6,dec:4,form:"W W L W W",streak:"2-win streak",talent:{tier:"contender",striking:3,grappling:4,cardio:4,chin:4,wrestling:4,overall:3},wins:[{name:"Bruno Silva",detail:"Decision — UFC 2025",hof:false,champ:false}]},
+   b:{name:"Stewart Nicoll",nick:"",rec:"8-2-0",rank:"NR",age:27,height:'5\'3"',reach:64,stance:"Orthodox",style:"Striking / Grappling",slpm:3.9,sacc:47,sdef:54,tdavg:1.6,tdacc:42,tddef:55,subavg:0.6,ko:4,sub:2,dec:2,form:"W W W W L",streak:"1-loss",talent:{tier:"prospect",striking:3,grappling:3,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"James Sheehan",detail:"KO — Cage Warriors 2024",hof:false,champ:false}]},
+   wm:{pick:"Costa Decision",method:"dec",reason:"More UFC experience, better grappling pedigree. 3-round decision win."}},
 
-  {label:"Featured Prelim · LW · 5 PM ET",card:"PRELIM",espnId:"401864367",startET:"5:00 PM ET",
-   odds:{aLine:"-300",bLine:"+240",note:"DraftKings",props:["Bahamondes KO -125","Under 2.5 rds -145","Musayev +240"]},
-   a:{name:"Ignacio Bahamondes",espnAthleteId:"4038116",nick:"La Jaula",country:"CHI",rec:"17-6-0",rank:"NR",age:28,height:"5'11\"",reach:74,stance:"Southpaw",style:"Muay Thai / Kicking",slpm:4.1,sacc:46,sdef:54,tdavg:0.8,tdacc:38,tddef:58,subavg:0.5,ko:8,sub:3,dec:6,form:"L W W W W",streak:"4-win streak",talent:{tier:"contender",striking:4,grappling:3,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Zhu Rong",detail:"Sub — UFC 2025",hof:false,champ:false}]},
-   b:{name:"Tofiq Musayev",espnAthleteId:"4423264",nick:"",country:"AZE",rec:"22-6-0",rank:"NR",age:36,height:"5'11\"",reach:72,stance:"Orthodox",style:"Striking / Wrestling",slpm:3.7,sacc:43,sdef:50,tdavg:1.0,tdacc:35,tddef:48,subavg:0.6,ko:10,sub:5,dec:7,form:"W W W W L",streak:"1-loss",talent:{tier:"veteran",striking:4,grappling:3,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Damir Ismagulov",detail:"Decision — Rizin 2022",hof:false,champ:false}]},
-   wm:{pick:"Bahamondes KO/TKO",method:"ko",reason:"-300 fav. Southpaw kicking + 4-win streak. Musayev rough UFC debut. Finish Rd 1-2."}},
+  {label:"Women's Bantamweight · Prelim · 5 PM ET",card:"PRELIM",startET:"5:00 PM ET",
+   odds:{aLine:"-150",bLine:"+125",note:"DraftKings",props:["Distance -140","Pereira sub +280"]},
+   a:{name:"Alice Pereira",nick:"",rec:"6-1-0",rank:"NR",age:26,height:'5\'5"',reach:65,stance:"Orthodox",style:"BJJ / Striking",slpm:3.4,sacc:46,sdef:55,tdavg:2.0,tdacc:46,tddef:60,subavg:1.2,ko:2,sub:3,dec:1,form:"W W W W L",streak:"1-loss",talent:{tier:"prospect",striking:3,grappling:4,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Brenda Gonzales",detail:"Sub — DWCS 2024",hof:false,champ:false}]},
+   b:{name:"Hailey Cowan",nick:"",rec:"7-4-0",rank:"NR",age:29,height:'5\'6"',reach:66,stance:"Orthodox",style:"Wrestling / Striking",slpm:3.8,sacc:44,sdef:52,tdavg:2.5,tdacc:50,tddef:58,subavg:0.5,ko:3,sub:1,dec:3,form:"L W W L W",streak:"Mixed",talent:{tier:"veteran",striking:3,grappling:3,cardio:3,chin:3,wrestling:4,overall:3},wins:[{name:"Vanessa Demopoulos",detail:"Decision — UFC 2024",hof:false,champ:false}]},
+   wm:{pick:"Pereira Decision",method:"dec",reason:"Better BJJ and submission game. More active UFC prospect. Edges Cowan over 3 rounds."}},
 
-  {label:"Lightweight · Prelim · 5 PM ET",card:"PRELIM",espnId:"401857697",startET:"5:00 PM ET",
-   odds:{aLine:"-280",bLine:"+225",note:"DraftKings",props:["Hooper sub +150","Under 2.5 rds -120","Gibson +225"]},
-   a:{name:"Chase Hooper",espnAthleteId:"4354421",nick:"The Dream",country:"USA",rec:"16-5-1",rank:"NR",age:26,height:"5'11\"",reach:76,stance:"Orthodox",style:"BJJ / Grappling",slpm:2.9,sacc:41,sdef:53,tdavg:2.4,tdacc:50,tddef:60,subavg:1.5,ko:3,sub:8,dec:5,form:"W W L W W",streak:"2-win streak",talent:{tier:"contender",striking:2,grappling:5,cardio:4,chin:4,wrestling:5,overall:4},wins:[{name:"Jim Miller",detail:"Decision — UFC 314 2025",hof:true,champ:false},{name:"Jordan Leavitt",detail:"Sub Rd 2 — UFC 2023",hof:false,champ:false}]},
-   b:{name:"Lance Gibson Jr.",espnAthleteId:"4687537",nick:"",country:"CAN",rec:"9-2-0",rank:"NR",age:29,height:"5'9\"",reach:71,stance:"Orthodox",style:"Wrestling / Striking",slpm:3.2,sacc:44,sdef:51,tdavg:1.8,tdacc:42,tddef:52,subavg:0.5,ko:3,sub:3,dec:3,form:"W W W W L",streak:"1-loss",talent:{tier:"prospect",striking:3,grappling:3,cardio:3,chin:3,wrestling:4,overall:3},wins:[{name:"Killys Mota",detail:"Sub — Bellator 2023",hof:false,champ:false}]},
-   wm:{pick:"Hooper Submission",method:"sub",reason:"50% TD acc, 1.5 sub avg. BJJ on another level. Rd 2 submission."}},
-
-  {label:"Heavyweight · Prelim · 5 PM ET",card:"PRELIM",espnId:"401865596",startET:"5:00 PM ET",
-   odds:{aLine:"+115",bLine:"-140",note:"DraftKings",props:["Fortune TKO -110","Under 1.5 rds +105","Tybura dec +280"]},
-   a:{name:"Marcin Tybura",espnAthleteId:"3093559",nick:"Tybur",country:"POL",rec:"24-9-0",rank:"NR",age:39,height:"6'4\"",reach:80,stance:"Orthodox",style:"Muay Thai / Wrestling",slpm:3.3,sacc:45,sdef:54,tdavg:1.2,tdacc:38,tddef:63,subavg:0.4,ko:8,sub:5,dec:11,form:"W L W L W",streak:"Mixed",talent:{tier:"gatekeeper",striking:4,grappling:3,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Andrei Arlovski",detail:"Decision — UFC 2023",hof:true,champ:false},{name:"Walt Harris",detail:"TKO — UFC 2022",hof:false,champ:false}]},
-   b:{name:"Tyrell Fortune",espnAthleteId:"4065006",nick:"",country:"USA",rec:"12-2-0",rank:"NR",age:30,height:"6'3\"",reach:78,stance:"Orthodox",style:"Wrestling / Power",slpm:2.8,sacc:46,sdef:52,tdavg:2.2,tdacc:52,tddef:55,subavg:0.3,ko:7,sub:1,dec:4,form:"W W W W L",streak:"1-loss",talent:{tier:"prospect",striking:3,grappling:3,cardio:3,chin:4,wrestling:5,overall:3},wins:[{name:"Parker Porter",detail:"TKO Rd 1 — UFC 2024",hof:false,champ:false}]},
-   wm:{pick:"Fortune TKO",method:"ko",reason:"52% TD acc, power striking, 9 years younger. TKO Rd 1-2."}},
-
-  {label:"W. Flyweight · Prelim · 5 PM ET",card:"PRELIM",espnId:"401838360",startET:"5:00 PM ET",
-   odds:{aLine:"-130",bLine:"+110",note:"DraftKings",props:["Distance -180","O'Neill dec +125","Fernandes sub +450"]},
-   a:{name:"Casey O'Neill",espnAthleteId:"4699589",nick:"King KC",country:"SCO/AUS",rec:"10-2-0",rank:"NR",age:27,height:"5'4\"",reach:64,stance:"Orthodox",style:"Muay Thai / Wrestling",slpm:3.8,sacc:47,sdef:55,tdavg:1.6,tdacc:45,tddef:58,subavg:0.8,ko:4,sub:3,dec:3,form:"L L W W W",streak:"3-win streak",talent:{tier:"contender",striking:4,grappling:3,cardio:3,chin:3,wrestling:4,overall:3},wins:[{name:"Antonina Shevchenko",detail:"TKO — UFC 2023",hof:false,champ:false}]},
-   b:{name:"Gabriella Fernandes",espnAthleteId:"4871203",nick:"",country:"BRA",rec:"10-4-0",rank:"NR",age:30,height:"5'3\"",reach:63,stance:"Orthodox",style:"BJJ / Striking",slpm:3.4,sacc:43,sdef:52,tdavg:1.1,tdacc:38,tddef:53,subavg:1.0,ko:2,sub:4,dec:4,form:"W W W L W",streak:"1-loss",talent:{tier:"veteran",striking:3,grappling:4,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"Wang Cong",detail:"Decision — UFC 2024",hof:false,champ:false}]},
-   wm:{pick:"Fernandes Decision",method:"dec",reason:"Fernandes has clear game plan advantage. O'Neill regresses vs smart opponents. 3-round technical win."}},
-
-  {label:"Light Heavyweight · Prelim · 5 PM ET",card:"PRELIM",espnId:"401860058",startET:"5:00 PM ET",
-   odds:{aLine:"-600",bLine:"+440",note:"DraftKings",props:["Stirling dec -160","Distance -110","Lopes +440"]},
-   a:{name:"Navajo Stirling",espnAthleteId:"5216713",nick:"",country:"NZ",rec:"11-2-0",rank:"NR",age:29,height:"6'2\"",reach:75,stance:"Orthodox",style:"City Kickboxing / Grappling",slpm:3.0,sacc:44,sdef:58,tdavg:1.3,tdacc:40,tddef:62,subavg:0.6,ko:4,sub:2,dec:5,form:"W W W W W",streak:"8-win streak",talent:{tier:"contender",striking:3,grappling:4,cardio:4,chin:4,wrestling:4,overall:3},wins:[{name:"Junior Tafa",detail:"Decision — UFC 2024",hof:false,champ:false}]},
-   b:{name:"Bruno Lopes",espnAthleteId:"4691323",nick:"",country:"BRA",rec:"14-4-0",rank:"NR",age:32,height:"6'1\"",reach:74,stance:"Orthodox",style:"Muay Thai / BJJ",slpm:3.9,sacc:48,sdef:49,tdavg:0.8,tdacc:33,tddef:50,subavg:0.8,ko:7,sub:4,dec:3,form:"L L W W W",streak:"3-win streak",talent:{tier:"veteran",striking:4,grappling:3,cardio:3,chin:3,wrestling:2,overall:3},wins:[{name:"Kennedy Nzechukwu",detail:"KO — UFC 2024",hof:false,champ:false}]},
-   wm:{pick:"Stirling Decision",method:"dec",reason:"87.1% win prob. 8-fight streak. City Kickboxing discipline. All 3 UFC wins by decision."}},
-
-  {label:"Bantamweight · Prelim · 5 PM ET",card:"PRELIM",espnId:"401865595",startET:"5:00 PM ET",
-   odds:{aLine:"-160",bLine:"+135",note:"DraftKings",props:["Over 2.5 rds -175","Simon sub +220","Yanez KO +280"]},
-   a:{name:"Ricky Simon",espnAthleteId:"3922491",nick:"",country:"USA",rec:"22-5-0",rank:"NR",age:32,height:"5'6\"",reach:68,stance:"Orthodox",style:"Wrestling / BJJ",slpm:3.5,sacc:44,sdef:52,tdavg:2.5,tdacc:52,tddef:65,subavg:1.0,ko:5,sub:8,dec:9,form:"W L W W L",streak:"Mixed",talent:{tier:"contender",striking:2,grappling:5,cardio:4,chin:4,wrestling:5,overall:4},wins:[{name:"Urijah Faber",detail:"Sub — UFC 245 2019",hof:true,champ:false},{name:"Javid Basharat",detail:"KO — UFC 2025",hof:false,champ:false}]},
-   b:{name:"Adrian Yanez",espnAthleteId:"3998248",nick:"",country:"USA",rec:"16-5-0",rank:"NR",age:30,height:"5'8\"",reach:70,stance:"Orthodox",style:"Boxing / Striking",slpm:4.4,sacc:50,sdef:54,tdavg:0.5,tdacc:28,tddef:62,subavg:0.3,ko:10,sub:1,dec:5,form:"L L W L W",streak:"1-3 last 4",talent:{tier:"veteran",striking:4,grappling:2,cardio:3,chin:3,wrestling:2,overall:3},wins:[{name:"Davey Grant",detail:"KO Rd 1 — UFC 2022",hof:false,champ:false}]},
-   wm:{pick:"Simon Submission",method:"sub",reason:"52% TD acc, elite BJJ. Submission Rd 2-3."}},
-
-  {label:"W. Strawweight · Prelim · 5 PM ET",card:"PRELIM",espnId:"401863938",startET:"5:00 PM ET",
-   odds:{aLine:"-650",bLine:"+470",note:"DraftKings",props:["Thainara sub -115","Under 2.5 rds -150","Brasil +470"]},
-   a:{name:"Alexia Thainara",espnAthleteId:"5075992",nick:"",country:"BRA",rec:"13-1-0",rank:"NR",age:26,height:"5'4\"",reach:64,stance:"Orthodox",style:"Striking / Grappling",slpm:3.6,sacc:46,sdef:57,tdavg:1.2,tdacc:42,tddef:60,subavg:0.9,ko:4,sub:4,dec:5,form:"W W W W W",streak:"5-win streak",talent:{tier:"prospect",striking:4,grappling:4,cardio:4,chin:4,wrestling:4,overall:4},wins:[{name:"Luana Santos",detail:"Decision — UFC 2025",hof:false,champ:false}]},
-   b:{name:"Bruna Brasil",espnAthleteId:"4394200",nick:"",country:"BRA",rec:"11-6-1",rank:"NR",age:33,height:"5'5\"",reach:65,stance:"Orthodox",style:"BJJ / Grappling",slpm:2.7,sacc:38,sdef:50,tdavg:1.5,tdacc:44,tddef:52,subavg:1.1,ko:1,sub:5,dec:5,form:"W L L L W",streak:"Mixed",talent:{tier:"gatekeeper",striking:2,grappling:4,cardio:3,chin:3,wrestling:3,overall:3},wins:[{name:"JJ Aldrich",detail:"Decision — UFC 2023",hof:false,champ:false}]},
-   wm:{pick:"Thainara Submission",method:"sub",reason:"Bigger, stronger, more complete. BJJ + physicality = Rd 2 finish."}}
+  {label:"Women's Flyweight · Prelim · 5 PM ET",card:"PRELIM",startET:"5:00 PM ET",
+   odds:{aLine:"+110",bLine:"-130",note:"DraftKings",props:["Distance -120","Gatto TKO +200"]},
+   a:{name:"Dione Barbosa",nick:"",rec:"8-4-0",rank:"NR",age:31,height:'5\'4"',reach:63,stance:"Orthodox",style:"Striking / BJJ",slpm:4.0,sacc:48,sdef:54,tdavg:1.2,tdacc:38,tddef:58,subavg:0.8,ko:3,sub:3,dec:2,form:"W L W W L",streak:"Mixed",talent:{tier:"veteran",striking:3,grappling:3,cardio:3,chin:3,wrestling:2,overall:3},wins:[{name:"Casey O'Neill",detail:"Decision — UFC 2025",hof:false,champ:false}]},
+   b:{name:"Melissa Gatto",nick:"",rec:"9-2-2",rank:"NR",age:30,height:'5\'3"',reach:64,stance:"Southpaw",style:"Muay Thai / Kickboxing",slpm:4.5,sacc:52,sdef:58,tdavg:0.4,tdacc:25,tddef:65,subavg:0.2,ko:5,sub:1,dec:3,form:"D W W L W",streak:"1-win",talent:{tier:"contender",striking:5,grappling:2,cardio:3,chin:3,wrestling:1,overall:3},wins:[{name:"Andrea Lee",detail:"Decision — UFC 2024",hof:false,champ:false}]},
+   wm:{pick:"Gatto Decision",method:"dec",reason:"Better striking accuracy, Southpaw power, higher finish rate. Edges Barbosa in a technical fight."}}
 ];
 
 const ROSTER=[
@@ -523,7 +489,7 @@ const ROSTER=[
 
 
 // ── VENUE ──────────────────────────────────────────
-var VENUE = {name:'Climate Pledge Arena',city:'Seattle, WA',altitude:175,tempF:52,octagon:'30ft (standard)'};
+var VENUE = {name:'Meta APEX',city:'Las Vegas, NV',altitude:2001,tempF:75,octagon:'30ft (standard)'};
 
 // ── TRACKER ────────────────────────────────────────
 function loadTracker(){try{return JSON.parse(localStorage.getItem('ufcProbTracker')||'{"correct":0,"total":0,"log":[]}')}catch(e){return{correct:0,total:0,log:[]};}}
@@ -1230,7 +1196,7 @@ function buildLiveListFromESPN(d){
 
 function buildLiveListFromFIGHTS(){
   // Update header to show FN271
-  setEventHeader('UFC Fight Night 271 · Adesanya vs. Pyfer', 'Sat, Mar 28, 2026 · Seattle, WA', false);
+  setEventHeader('UFC Fight Night 272 · Moicano vs. Duncan', 'Sat, Apr 5, 2026 · Meta APEX · Las Vegas, NV', false);
 
   var mainEl=document.getElementById('mainList');
   var preEl=document.getElementById('prelimList');

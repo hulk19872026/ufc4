@@ -26,7 +26,7 @@ body{font-family:'Barlow',sans-serif;background:#0a0a0b;color:#f0f0f0;min-height
 .nav-wrap select optgroup{font-size:11px;color:var(--text3)}
 .nav-chevron{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);font-size:12px}
 /* PANELS */
-#livePanel,#cardPanel,#rosterPanel,#customPanel{display:none}
+#cardPanel,#rosterPanel,#customPanel{display:none}
 /* FIGHT LIST */
 .fight-list{display:flex;flex-direction:column;gap:6px}
 .fight-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
@@ -284,12 +284,23 @@ body{font-family:'Barlow',sans-serif;background:#0a0a0b;color:#f0f0f0;min-height
 
   <!-- LIVE PANEL -->
   <div id="livePanel">
-    <div style="margin-bottom:1rem">
-      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">MAIN CARD · 8 PM ET</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div id="liveEventHeader" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--text);letter-spacing:.03em">UFC Fight Night</div>
+          <div id="liveEventSub" style="font-size:10px;color:var(--text3);margin-top:2px"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="liveRefreshBadge" style="font-size:10px;color:var(--text3)">Loading…</span>
+          <button onclick="fetchAndBuildLive()" style="font-size:11px;padding:4px 10px;border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:6px;cursor:pointer;font-family:'Barlow',sans-serif">↻ Refresh</button>
+        </div>
+      </div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:7px">MAIN CARD</div>
       <div class="fight-list" id="mainList"></div>
-      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:14px 0 8px">PRELIMINARY CARD · 5 PM ET</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:12px 0 7px">PRELIMINARY CARD</div>
       <div class="fight-list" id="prelimList"></div>
     </div>
+    <div id="liveVenueBanner"></div>
     <div id="liveContent"></div>
   </div>
 
@@ -759,7 +770,11 @@ function renderComp(a,b,wm,label,odds,fightIdx){
     +'<div class="analysis-edge">Model edge: <span style="color:'+wCol+'">'+wName+' ('+Math.max(prob[0],prob[1])+'%)</span></div>'
     +'<p class="analysis-p">'+a.name.split(' ')[0]+': '+(a.streak||'')+(a.style?' · '+a.style:'')+'</p>'
     +'<p class="analysis-p">'+b.name.split(' ')[0]+': '+(b.streak||'')+(b.style?' · '+b.style:'')+'</p>'
+    +'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
     +'<button class="deep-btn" id="deepBtn_'+fIdx+'">⚡ Deep AI Analysis</button>'
+    +'<button class="deep-btn" id="refreshBtn_'+fIdx+'" style="border-color:var(--gold);color:var(--gold);background:rgba(245,158,11,.08)">↻ Refresh Stats</button>'
+    +'</div>'
+    +'<div id="refreshStatus_'+fIdx+'" style="font-size:11px;color:var(--text3);margin-top:6px"></div>'
     +'<div id="aiPanel_'+fIdx+'"></div></div>';
 
   return html;
@@ -816,6 +831,12 @@ function bindListeners(fIdx,a,b,wm,prob){
   var db=document.getElementById('deepBtn_'+fIdx);
   if(db)db.addEventListener('click',function(){
     runDeepAnalysis(db,a,b,prob,wm);
+  });
+
+  // refresh stats
+  var rb=document.getElementById('refreshBtn_'+fIdx);
+  if(rb)rb.addEventListener('click',function(){
+    refreshStats(rb,fIdx,a,b);
   });
 }
 
@@ -884,10 +905,166 @@ function loadFight(idx,targetId){
 }
 
 // ── LIVE PANEL ──────────────────────────────────────
-function buildLiveList(){
+// ── LIVE CARD: ESPN fetch with Mon/Fri auto-refresh ─
+// Cache key stores event id + date so we re-fetch when the event changes
+var _liveESPNData = null;  // in-memory cache for this session
+
+function shouldFetchESPN(){
+  // Fetch if: Mon or Fri, OR no cache, OR cache is from a different day
+  var now = new Date();
+  var day = now.getDay(); // 0=Sun,1=Mon,...,5=Fri,6=Sat
+  var todayStr = now.toDateString();
+  var cached = null;
+  try{ cached = JSON.parse(localStorage.getItem('ufcLiveCache')||'null'); }catch(e){}
+  // Always fetch if no cache
+  if(!cached) return true;
+  // Fetch if cache is stale (different calendar day)
+  if(cached.date !== todayStr) return true;
+  // Always re-fetch on Monday or Friday (fight week days)
+  if(day === 1 || day === 5) return true;
+  return false;
+}
+
+function setEventHeader(name, dateStr, isLive){
+  var h = document.getElementById('liveEventHeader');
+  if(!h) return;
+  var badge = isLive
+    ? '<span style="font-size:9px;padding:2px 7px;border-radius:4px;background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);margin-left:6px;font-weight:700;letter-spacing:.04em">LIVE</span>'
+    : '<span style="font-size:9px;padding:2px 7px;border-radius:4px;background:var(--bg4);color:var(--text3);border:1px solid var(--border);margin-left:6px">SCHEDULED</span>';
+  h.innerHTML = name + badge;
+  if(dateStr){
+    var sub = document.getElementById('liveEventSub');
+    if(sub) sub.textContent = dateStr;
+  }
+}
+
+function setRefreshBadge(text, color){
+  var b = document.getElementById('liveRefreshBadge');
+  if(b){ b.textContent = text; b.style.color = color||'var(--text3)'; }
+}
+
+async function fetchAndBuildLive(){
+  setRefreshBadge('Fetching from ESPN…', 'var(--blue)');
+  try{
+    var r = await fetch('/api/espn?_='+Date.now());
+    if(!r.ok) throw new Error('proxy '+r.status);
+    var d = await r.json();
+    if(d.error) throw new Error(d.error);
+
+    _liveESPNData = d;
+    // Cache it
+    try{
+      localStorage.setItem('ufcLiveCache', JSON.stringify({
+        date: new Date().toDateString(),
+        data: d
+      }));
+    }catch(e){}
+
+    buildLiveListFromESPN(d);
+    setRefreshBadge('ESPN · '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}), 'var(--green)');
+  }catch(e){
+    // Fallback to hardcoded FIGHTS
+    buildLiveListFromFIGHTS();
+    setRefreshBadge('Static card · ESPN unavailable', 'var(--text3)');
+  }
+}
+
+function buildLiveListFromESPN(d){
+  if(!d||!d.events||!d.events.length){ buildLiveListFromFIGHTS(); return; }
+  var event = d.events[0];
+  var comps = event.competitions||[];
+  if(!comps.length){ buildLiveListFromFIGHTS(); return; }
+
+  var eventName = event.name||'UFC Event';
+  var eventDate = event.date ? new Date(event.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) : '';
+  var anyLive = comps.some(function(c){ return c.status&&c.status.type&&c.status.type.state==='in'; });
+  setEventHeader(eventName, eventDate, anyLive);
+
   var mainEl=document.getElementById('mainList');
   var preEl=document.getElementById('prelimList');
-  if(!mainEl||!preEl)return;
+  if(!mainEl||!preEl) return;
+  mainEl.innerHTML=''; preEl.innerHTML='';
+
+  // Sort: later start times = main card
+  var sorted = comps.slice().sort(function(a,b){
+    return new Date(b.startDate||b.date) - new Date(a.startDate||a.date);
+  });
+  var total = sorted.length;
+  var mainCount = Math.min(Math.ceil(total/2), 6);
+
+  sorted.forEach(function(comp, ci){
+    var cs = comp.competitors||[];
+    var compA = cs.find(function(x){return x.order===1;})||cs[0];
+    var compB = cs.find(function(x){return x.order===2;})||cs[1];
+    if(!compA||!compB) return;
+
+    var aName = (compA.athlete&&compA.athlete.displayName)||'Fighter A';
+    var bName = (compB.athlete&&compB.athlete.displayName)||'Fighter B';
+    var aLast = aName.split(' ').slice(-1)[0];
+    var bLast = bName.split(' ').slice(-1)[0];
+    var aRec = (compA.records&&compA.records[0]&&compA.records[0].summary)||'';
+    var bRec = (compB.records&&compB.records[0]&&compB.records[0].summary)||'';
+    var weight = (comp.type&&comp.type.abbreviation)||'';
+    var status = comp.status&&comp.status.type;
+    var state = status?status.state:'pre';
+    var isLive = state==='in';
+    var isDone = state==='post'||(status&&status.completed);
+    var aWon = isDone&&compA.winner;
+    var bWon = isDone&&compB.winner;
+    var period = comp.status&&comp.status.period||0;
+    var clock = comp.status&&comp.status.displayClock||'';
+    var detail = (status&&(status.detail||status.shortDetail))||'Scheduled';
+
+    // Try to match to our FIGHTS data for stats
+    var fightIdx = FIGHTS.findIndex(function(f){ return f.espnId===comp.id; });
+    var hasFightData = fightIdx >= 0;
+
+    var liveTag = '';
+    if(isLive) liveTag = '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);margin-left:5px">RD '+period+' '+clock+'</span>';
+    else if(isDone) liveTag = '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2);margin-left:5px">Final'+(aWon?' · '+aLast+' W':bWon?' · '+bLast+' W':'')+'</span>';
+
+    var div = document.createElement('div');
+    div.className = 'fight-row';
+    if(!hasFightData) div.style.opacity = '0.7';
+
+    div.innerHTML = '<div>'
+      +'<div class="fr-names">'
+      +(aWon?'<strong>':'')+aLast+(aWon?'</strong>':'')+' <span>vs</span> '
+      +(bWon?'<strong>':'')+bLast+(bWon?'</strong>':'')
+      +liveTag+'</div>'
+      +'<div class="fr-sub">'+weight+(aRec?' · '+aRec:'')+(hasFightData?' · tap for stats':'')+'</div>'
+      +'</div>'
+      +'<div class="fr-pick">'
+      +(hasFightData
+        ? (function(){
+            var p=calcProb(FIGHTS[fightIdx].a,FIGHTS[fightIdx].b);
+            var fn=p[0]>=p[1]?FIGHTS[fightIdx].a.name.split(' ').slice(-1)[0]:FIGHTS[fightIdx].b.name.split(' ').slice(-1)[0];
+            return '<div class="fr-pct">'+fn+' '+Math.max(p[0],p[1])+'%</div><div class="fr-pct-label">model pick</div>';
+          })()
+        : '<div class="fr-pct-label" style="font-size:10px;color:var(--text3)">'+detail+'</div>')
+      +'</div>';
+
+    if(hasFightData){
+      div.addEventListener('click', function(){
+        document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
+        div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
+        loadFight(fightIdx,'liveContent');
+      });
+    }
+
+    if(ci < mainCount) mainEl.appendChild(div);
+    else preEl.appendChild(div);
+  });
+}
+
+function buildLiveListFromFIGHTS(){
+  // Update header to show FN271
+  setEventHeader('UFC Fight Night 271 · Adesanya vs. Pyfer', 'Sat, Mar 28, 2026 · Seattle, WA', false);
+
+  var mainEl=document.getElementById('mainList');
+  var preEl=document.getElementById('prelimList');
+  if(!mainEl||!preEl) return;
+  mainEl.innerHTML=''; preEl.innerHTML='';
 
   function makeRow(f,i){
     var div=document.createElement('div');
@@ -897,29 +1074,46 @@ function buildLiveList(){
     var favPct=Math.max(prob[0],prob[1]);
     var aLast=f.a.name.split(' ').slice(-1)[0];
     var bLast=f.b.name.split(' ').slice(-1)[0];
-    var weightDiv=f.label.split('·')[0].trim();
+    var weightDiv=f.label.split('\u00b7')[0].trim();
     div.innerHTML='<div>'
       +'<div class="fr-names">'+aLast+' <span>vs</span> '+bLast+'</div>'
-      +'<div class="fr-sub">'+weightDiv+' · '+f.startET+'</div>'
+      +'<div class="fr-sub">'+weightDiv+' \u00b7 '+f.startET+'</div>'
       +'</div>'
       +'<div class="fr-pick">'
       +'<div class="fr-pct">'+favName+' '+favPct+'%</div>'
       +'<div class="fr-pct-label">model pick</div>'
       +'</div>';
     div.addEventListener('click',function(){
-      // highlight selected
       document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
-      div.style.borderColor='var(--blue)';
-      div.style.background='var(--bg4)';
+      div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
       loadFight(i,'liveContent');
     });
     return div;
   }
 
   FIGHTS.forEach(function(f,i){
-    if(f.card==='MAIN')mainEl.appendChild(makeRow(f,i));
+    if(f.card==='MAIN') mainEl.appendChild(makeRow(f,i));
     else preEl.appendChild(makeRow(f,i));
   });
+}
+
+function buildLiveList(){
+  // Check cache first — use it immediately so UI shows something right away
+  var cached = null;
+  try{ cached = JSON.parse(localStorage.getItem('ufcLiveCache')||'null'); }catch(e){}
+
+  if(cached && cached.data){
+    _liveESPNData = cached.data;
+    buildLiveListFromESPN(cached.data);
+    setRefreshBadge('ESPN (cached) \u00b7 '+cached.date, 'var(--text3)');
+  } else {
+    buildLiveListFromFIGHTS();
+  }
+
+  // Then fetch fresh data if needed (Mon/Fri or no cache)
+  if(shouldFetchESPN()){
+    fetchAndBuildLive();
+  }
 }
 
 // ── NAVIGATION ──────────────────────────────────────

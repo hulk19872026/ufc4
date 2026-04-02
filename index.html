@@ -989,6 +989,43 @@ async function loadFightWithLiveStats(idx, targetId, aEspnId, bEspnId) {
   bindListeners(i, a, b, f.wm, calcProb(a, b));
 }
 
+// ── REFRESH STATS ──────────────────────────────────
+// Called by the "↻ Refresh Stats" button in the fight display.
+// Looks up athlete IDs from the cached ESPN scoreboard and re-fetches.
+async function refreshStats(btn, fIdx, a, b) {
+  var aEspnId = (a && a.espnAthleteId) || null;
+  var bEspnId = (b && b.espnAthleteId) || null;
+
+  // Try to resolve IDs from ESPN scoreboard cache when not pre-set
+  if (!aEspnId && _liveESPNData) {
+    var comps = (_liveESPNData.events && _liveESPNData.events[0] && _liveESPNData.events[0].competitions) || [];
+    var aLow = a.name.split(' ').slice(-1)[0].toLowerCase();
+    var bLow = b.name.split(' ').slice(-1)[0].toLowerCase();
+    comps.some(function(comp){
+      var cs = comp.competitors || [];
+      var cA = cs.find(function(x){return x.order===1;})||cs[0];
+      var cB = cs.find(function(x){return x.order===2;})||cs[1];
+      if (!cA || !cB) return false;
+      var nA = ((cA.athlete&&cA.athlete.displayName)||'').split(' ').slice(-1)[0].toLowerCase();
+      var nB = ((cB.athlete&&cB.athlete.displayName)||'').split(' ').slice(-1)[0].toLowerCase();
+      var match = (nA===aLow&&nB===bLow)||(nA===bLow&&nB===aLow);
+      if (match) {
+        var flipped = nA !== aLow;
+        aEspnId = flipped ? (cB.athlete&&cB.athlete.id)||null : (cA.athlete&&cA.athlete.id)||null;
+        bEspnId = flipped ? (cA.athlete&&cA.athlete.id)||null : (cB.athlete&&cB.athlete.id)||null;
+      }
+      return match;
+    });
+  }
+
+  // Determine which container is currently showing this fight
+  var lc = document.getElementById('liveContent');
+  var fc = document.getElementById('fightDisplay');
+  var tid = (lc && lc.innerHTML.trim()) ? 'liveContent' : 'fightDisplay';
+
+  await loadFightWithLiveStats(fIdx, tid, aEspnId, bEspnId);
+}
+
 // ── LOAD FIGHT ──────────────────────────────────────
 function loadFight(idx, targetId){
   try {
@@ -1040,7 +1077,8 @@ function loadFight(idx, targetId){
 // ── LIVE PANEL ──────────────────────────────────────
 // ── LIVE CARD: ESPN fetch with Mon/Fri auto-refresh ─
 // Cache key stores event id + date so we re-fetch when the event changes
-var _liveESPNData = null;  // in-memory cache for this session
+var _liveESPNData = null;       // in-memory cache for this session
+var _liveRefreshTimer = null;  // auto-refresh interval when fights are live
 
 function shouldFetchESPN(){
   // Fetch if: Mon or Fri, OR no cache, OR cache is from a different day
@@ -1097,6 +1135,7 @@ async function fetchAndBuildLive(){
     setRefreshBadge('ESPN · '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}), 'var(--green)');
   }catch(e){
     // Fallback to hardcoded FIGHTS
+    if (_liveRefreshTimer) { clearInterval(_liveRefreshTimer); _liveRefreshTimer = null; }
     buildLiveListFromFIGHTS();
     setRefreshBadge('Static card · ESPN unavailable', 'var(--text3)');
   }
@@ -1150,6 +1189,15 @@ function buildLiveListFromESPN(d){
 
     // Try to match to our FIGHTS data for stats
     var fightIdx = FIGHTS.findIndex(function(f){ return f.espnId===comp.id; });
+    // Fallback: match by fighter last name when no espnId is pre-set in FIGHTS
+    if (fightIdx < 0) {
+      var aLow = aLast.toLowerCase(), bLow = bLast.toLowerCase();
+      fightIdx = FIGHTS.findIndex(function(f){
+        var fa = f.a.name.split(' ').slice(-1)[0].toLowerCase();
+        var fb = f.b.name.split(' ').slice(-1)[0].toLowerCase();
+        return (fa===aLow&&fb===bLow)||(fa===bLow&&fb===aLow);
+      });
+    }
     var hasFightData = fightIdx >= 0;
 
     var liveTag = '';
@@ -1186,12 +1234,20 @@ function buildLiveListFromESPN(d){
           if(lc) lc.scrollIntoView({behavior:'smooth', block:'start'});
           loadFightWithLiveStats(fi, 'liveContent', aEspnId, bEspnId);
         });
-      })(fightIdx, compA.id, compB.id);
+      })(fightIdx, (compA.athlete&&compA.athlete.id)||null, (compB.athlete&&compB.athlete.id)||null);
     }
 
     if(ci < mainCount) mainEl.appendChild(div);
     else preEl.appendChild(div);
   });
+
+  // Auto-refresh every 60 s while any fight is live
+  if (_liveRefreshTimer) { clearInterval(_liveRefreshTimer); _liveRefreshTimer = null; }
+  if (anyLive) {
+    _liveRefreshTimer = setInterval(function(){
+      fetchAndBuildLive();
+    }, 60000);
+  }
 }
 
 function buildLiveListFromFIGHTS(){

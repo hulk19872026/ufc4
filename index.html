@@ -930,6 +930,11 @@ function parseStatSplits(splits, out) {
 // Main function: fetch ESPN stats for both fighters, merge, render, then load round stats
 async function loadFightWithLiveStats(idx, targetId, aEspnId, bEspnId, eid, cid) {
   var i = parseInt(idx);
+  if (isNaN(i) || i < 0 || i >= FIGHTS.length) {
+    var lcc = document.getElementById(targetId || 'liveContent');
+    if (lcc) lcc.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:12px">No fight data for index ' + idx + '</div>';
+    return;
+  }
   var f = FIGHTS[i];
   if (!f) return;
 
@@ -972,14 +977,23 @@ async function loadFightWithLiveStats(idx, targetId, aEspnId, bEspnId, eid, cid)
 
   // Render fight comparison (guard against renderComp errors)
   try {
-    container.innerHTML = renderComp(a, b, f.wm, f.label, f.odds, i);
+    var html = renderComp(a, b, f.wm, f.label, f.odds, i);
+    if (!html) throw new Error('renderComp returned empty');
+    container.innerHTML = html;
   } catch(e) {
-    container.innerHTML = '<div style="padding:1.5rem;text-align:center">'
-      + '<div style="color:var(--red);font-weight:600;margin-bottom:4px">Render error</div>'
-      + '<div style="color:var(--text3);font-size:11px">' + (e.message||e) + '</div></div>';
-    return;
+    // Fallback: use original FIGHTS data without ESPN overlay
+    try {
+      container.innerHTML = renderComp(f.a, f.b, f.wm, f.label, f.odds, i);
+      a = f.a; b = f.b;
+    } catch(e2) {
+      container.innerHTML = '<div style="padding:1.5rem;text-align:center">'
+        + '<div style="color:var(--red);font-weight:600;margin-bottom:4px">Render error</div>'
+        + '<div style="color:var(--text3);font-size:11px">' + (e2.message||e.message||e) + '</div></div>';
+      return;
+    }
   }
-  bindListeners(i, a, b, f.wm, calcProb(a, b));
+
+  try { bindListeners(i, a, b, f.wm, calcProb(a, b)); } catch(e) {}
 
   // Scroll to show the rendered card below the sticky header
   scrollToContent(container);
@@ -1047,43 +1061,48 @@ function scrollToContent(el) {
 // Robust name match: handles accents, compound last names (e.g. "de Oliveira" vs "Moicano")
 function nmatch(a, b) {
   function norm(s) {
-    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
+    var low = (s || '').toLowerCase();
+    try { low = low.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch(e) {}
+    return low.replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
   }
   var na = norm(a), nb = norm(b);
+  if (!na || !nb) return false;
   // Last word exact match (handles most cases)
   if (na.split(' ').pop() === nb.split(' ').pop()) return true;
   // Any significant word (>3 chars) shared between names
-  var wa = na.split(' ').filter(function(w){return w.length>3;});
-  var wb = nb.split(' ').filter(function(w){return w.length>3;});
+  var wa = na.split(' ').filter(function(w){return w.length > 3;});
+  var wb = nb.split(' ').filter(function(w){return w.length > 3;});
   return wa.some(function(w){return wb.indexOf(w) >= 0;});
 }
 
 // ── ESPN COMPETITION LOOKUP ────────────────────────
 // Find eid/cid/athleteIds from the cached ESPN scoreboard by fighter name
 function lookupEspnComp(aName, bName) {
-  if (!_liveESPNData || !_liveESPNData.events || !_liveESPNData.events[0]) return null;
-  var eid = _liveESPNData.events[0].id;
-  var comps = _liveESPNData.events[0].competitions || [];
-  for (var ci = 0; ci < comps.length; ci++) {
-    var comp = comps[ci];
-    var cs = comp.competitors || [];
-    var cA = cs.find(function(x){return x.order===1;})||cs[0];
-    var cB = cs.find(function(x){return x.order===2;})||cs[1];
-    if (!cA || !cB) continue;
-    var nA = (cA.athlete&&cA.athlete.displayName)||'';
-    var nB = (cB.athlete&&cB.athlete.displayName)||'';
-    var fwd = nmatch(aName, nA) && nmatch(bName, nB);
-    var rev = nmatch(aName, nB) && nmatch(bName, nA);
-    if (fwd || rev) {
-      var flip = rev && !fwd;
-      return {
-        eid: eid, cid: comp.id,
-        aAthleteId: flip ? (cB.athlete&&cB.athlete.id)||null : (cA.athlete&&cA.athlete.id)||null,
-        bAthleteId: flip ? (cA.athlete&&cA.athlete.id)||null : (cB.athlete&&cB.athlete.id)||null
-      };
+  try {
+    if (!_liveESPNData || !_liveESPNData.events || !_liveESPNData.events[0]) return null;
+    var eid = _liveESPNData.events[0].id;
+    var comps = _liveESPNData.events[0].competitions || [];
+    for (var ci = 0; ci < comps.length; ci++) {
+      var comp = comps[ci];
+      var cs = comp.competitors || [];
+      var cA = cs.find(function(x){return x.order===1;})||cs[0];
+      var cB = cs.find(function(x){return x.order===2;})||cs[1];
+      if (!cA || !cB) continue;
+      var nA = (cA.athlete&&cA.athlete.displayName)||'';
+      var nB = (cB.athlete&&cB.athlete.displayName)||'';
+      var fwd = nmatch(aName, nA) && nmatch(bName, nB);
+      var rev = nmatch(aName, nB) && nmatch(bName, nA);
+      if (fwd || rev) {
+        var flip = rev && !fwd;
+        return {
+          eid: eid, cid: comp.id,
+          aAthleteId: flip ? (cB.athlete&&cB.athlete.id)||null : (cA.athlete&&cA.athlete.id)||null,
+          bAthleteId: flip ? (cA.athlete&&cA.athlete.id)||null : (cB.athlete&&cB.athlete.id)||null
+        };
+      }
     }
-  }
-  return null;
+    return null;
+  } catch(e) { return null; }
 }
 
 // Returns true if the given competition ID is currently in-progress
@@ -1630,15 +1649,20 @@ function buildLiveListFromFIGHTS(){
       div.addEventListener('click', function(){
         document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
         div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
-        var aId = fight.a.espnAthleteId || null;
-        var bId = fight.b.espnAthleteId || null;
-        // Look up ESPN competition + athlete IDs from cached scoreboard
-        var espnComp = lookupEspnComp(fight.a.name, fight.b.name);
-        if (espnComp) {
-          if (!aId) aId = espnComp.aAthleteId;
-          if (!bId) bId = espnComp.bAthleteId;
+        try {
+          var aId = fight.a.espnAthleteId || null;
+          var bId = fight.b.espnAthleteId || null;
+          var espnComp = null;
+          try { espnComp = lookupEspnComp(fight.a.name, fight.b.name); } catch(e2) {}
+          if (espnComp) {
+            if (!aId) aId = espnComp.aAthleteId;
+            if (!bId) bId = espnComp.bAthleteId;
+          }
+          loadFightWithLiveStats(fi, 'liveContent', aId, bId, espnComp ? espnComp.eid : null, espnComp ? espnComp.cid : null);
+        } catch(e) {
+          var lcc = document.getElementById('liveContent');
+          if (lcc) lcc.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--red);font-size:12px">Click error: ' + (e.message||e) + '</div>';
         }
-        loadFightWithLiveStats(fi, 'liveContent', aId, bId, espnComp ? espnComp.eid : null, espnComp ? espnComp.cid : null);
       });
     })(i, f);
     return div;

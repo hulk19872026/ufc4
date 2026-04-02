@@ -927,50 +927,35 @@ function parseStatSplits(splits, out) {
   });
 }
 
-// Main function: fetch ESPN stats for both fighters in a competition, merge & render
-async function loadFightWithLiveStats(idx, targetId, aEspnId, bEspnId) {
+// Main function: fetch ESPN stats for both fighters, merge, render, then load round stats
+async function loadFightWithLiveStats(idx, targetId, aEspnId, bEspnId, eid, cid) {
   var i = parseInt(idx);
   var f = FIGHTS[i];
   if (!f) return;
 
-  // Start rendering with what we have immediately
   var tid = targetId || 'fightDisplay';
   var container = document.getElementById(tid);
   if (!container) return;
   container.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text3);font-size:13px">'
     + '<div style="font-size:20px;margin-bottom:8px">⏳</div>'
-    + '<div>Fetching live stats from ESPN…</div></div>';
+    + '<div>Loading fight data…</div></div>';
 
-  // Fetch stats for both fighters in parallel
+  // Fetch athlete profiles in parallel if IDs available
   var aProfile = null, bProfile = null;
   if (aEspnId && bEspnId) {
     try {
-      var results = await Promise.all([
-        fetchAthleteProfile(aEspnId),
-        fetchAthleteProfile(bEspnId)
-      ]);
+      var results = await Promise.all([fetchAthleteProfile(aEspnId), fetchAthleteProfile(bEspnId)]);
       aProfile = results[0];
       bProfile = results[1];
-    } catch(e) {
-      // silently fall through to static data
-    }
+    } catch(e) {}
   }
 
-  // Clone fighter objects so we don't mutate FIGHTS array permanently
   var a = Object.assign({}, f.a);
   var b = Object.assign({}, f.b);
+  if (aProfile) Object.assign(a, parseESPNStats(null, aProfile));
+  if (bProfile) Object.assign(b, parseESPNStats(null, bProfile));
 
-  // Merge ESPN data if we got it
-  if (aProfile) {
-    var aUpdated = parseESPNStats(null, aProfile);
-    Object.assign(a, aUpdated);
-  }
-  if (bProfile) {
-    var bUpdated = parseESPNStats(null, bProfile);
-    Object.assign(b, bUpdated);
-  }
-
-  // Render with updated stats
+  // Venue banner
   var vbId = (tid === 'liveContent') ? 'liveVenueBanner' : 'venueBanner';
   var vb = document.getElementById(vbId);
   if (vb) {
@@ -985,8 +970,24 @@ async function loadFightWithLiveStats(idx, targetId, aEspnId, bEspnId) {
       + '</div>';
   }
 
-  container.innerHTML = renderComp(a, b, f.wm, f.label, f.odds, i);
+  // Render fight comparison (guard against renderComp errors)
+  try {
+    container.innerHTML = renderComp(a, b, f.wm, f.label, f.odds, i);
+  } catch(e) {
+    container.innerHTML = '<div style="padding:1.5rem;text-align:center">'
+      + '<div style="color:var(--red);font-weight:600;margin-bottom:4px">Render error</div>'
+      + '<div style="color:var(--text3);font-size:11px">' + (e.message||e) + '</div></div>';
+    return;
+  }
   bindListeners(i, a, b, f.wm, calcProb(a, b));
+
+  // Append live round stats section when ESPN competition IDs are present
+  if (eid && cid) {
+    var rsDiv = document.createElement('div');
+    rsDiv.id = 'roundStatsSection_' + i;
+    container.appendChild(rsDiv);
+    showRoundStats(eid, cid, a, b, i, rsDiv);
+  }
 }
 
 // ── REFRESH STATS ──────────────────────────────────
@@ -1020,10 +1021,230 @@ async function refreshStats(btn, fIdx, a, b) {
 
   // Determine which container is currently showing this fight
   var lc = document.getElementById('liveContent');
-  var fc = document.getElementById('fightDisplay');
   var tid = (lc && lc.innerHTML.trim()) ? 'liveContent' : 'fightDisplay';
 
-  await loadFightWithLiveStats(fIdx, tid, aEspnId, bEspnId);
+  // Look up ESPN competition IDs for round stats
+  var comp = lookupEspnComp(a.name, b.name);
+  await loadFightWithLiveStats(fIdx, tid, aEspnId, bEspnId, comp ? comp.eid : null, comp ? comp.cid : null);
+}
+
+// ── ESPN COMPETITION LOOKUP ────────────────────────
+// Find eid/cid/athleteIds from the cached ESPN scoreboard by fighter last name
+function lookupEspnComp(aName, bName) {
+  if (!_liveESPNData || !_liveESPNData.events || !_liveESPNData.events[0]) return null;
+  var aLow = aName.split(' ').slice(-1)[0].toLowerCase();
+  var bLow = bName.split(' ').slice(-1)[0].toLowerCase();
+  var eid = _liveESPNData.events[0].id;
+  var comps = _liveESPNData.events[0].competitions || [];
+  for (var ci = 0; ci < comps.length; ci++) {
+    var comp = comps[ci];
+    var cs = comp.competitors || [];
+    var cA = cs.find(function(x){return x.order===1;})||cs[0];
+    var cB = cs.find(function(x){return x.order===2;})||cs[1];
+    if (!cA || !cB) continue;
+    var nA = ((cA.athlete&&cA.athlete.displayName)||'').split(' ').slice(-1)[0].toLowerCase();
+    var nB = ((cB.athlete&&cB.athlete.displayName)||'').split(' ').slice(-1)[0].toLowerCase();
+    if ((nA===aLow&&nB===bLow)||(nA===bLow&&nB===aLow)) {
+      var flip = nA !== aLow;
+      return {
+        eid: eid, cid: comp.id,
+        aAthleteId: flip ? (cB.athlete&&cB.athlete.id)||null : (cA.athlete&&cA.athlete.id)||null,
+        bAthleteId: flip ? (cA.athlete&&cA.athlete.id)||null : (cB.athlete&&cB.athlete.id)||null
+      };
+    }
+  }
+  return null;
+}
+
+// ── ROUND STATS ────────────────────────────────────
+async function showRoundStats(eid, cid, a, b, fightIdx, container) {
+  container.innerHTML = '<div style="padding:10px 0 4px;text-align:center;color:var(--text3);font-size:11px">Loading round stats from ESPN…</div>';
+  try {
+    var r = await fetch('/api/espn?type=competition_stats&eid='+eid+'&cid='+cid+'&_='+Date.now());
+    if (!r.ok) throw new Error('ESPN '+r.status);
+    var data = await r.json();
+    if (data.error) throw new Error(data.error);
+    container.innerHTML = buildRoundStatsHtml(data, a, b, fightIdx, eid, cid);
+    bindRoundStatsListeners(fightIdx, data, a, b, eid, cid);
+  } catch(e) {
+    container.innerHTML = ''; // Silently hide — fight detail still works without it
+  }
+}
+
+// Parse ESPN competition_stats into perRound[roundNum][fighterName] = {sig, sigAtt, td, ctrl, kd}
+function parseCompStats(data) {
+  var perRound = {}, athNames = [];
+  try {
+    var cats = (data.splits && data.splits.categories) || [];
+    cats.forEach(function(cat){
+      (cat.athletes||[]).forEach(function(ath){
+        var name = (ath.athlete&&ath.athlete.displayName)||'';
+        if (name && athNames.indexOf(name)<0) athNames.push(name);
+        var splitCats = (ath.splits&&ath.splits.categories)||[];
+        splitCats.forEach(function(sc){
+          var sn = (sc.name||sc.displayName||'').toLowerCase().trim();
+          var rm = sn.match(/^(\d+)$/) || sn.match(/round\s*(\d)/);
+          if (!rm) return;
+          var rn = rm[1];
+          if (!perRound[rn]) perRound[rn] = {};
+          if (!perRound[rn][name]) perRound[rn][name] = {};
+          var rd = perRound[rn][name];
+          (sc.stats||[]).forEach(function(s){
+            var key = (s.name||s.abbreviation||'').toLowerCase();
+            var val = s.displayValue || String(Math.round(s.value||0));
+            if (key.includes('sigstrikesland') || key==='sigstrikes') rd.sig = val;
+            else if (key.includes('sigstrikesatt')) rd.sigAtt = val;
+            else if (key.includes('totalstrikes') && !key.includes('att')) rd.total = val;
+            else if ((key.includes('takedown') && !key.includes('att') && !key.includes('def')) || key==='tds') rd.td = val;
+            else if (key.includes('control') || key==='ctrl') rd.ctrl = val;
+            else if (key.includes('knockdown') || key==='kd') rd.kd = val;
+          });
+        });
+      });
+    });
+  } catch(e){}
+  return { perRound: perRound, athNames: athNames };
+}
+
+function buildRoundStatsHtml(data, a, b, fightIdx, eid, cid) {
+  var parsed = parseCompStats(data);
+  var rounds = Object.keys(parsed.perRound).map(Number).sort(function(x,y){return x-y;});
+  var aLast = a.name.split(' ').slice(-1)[0];
+  var bLast = b.name.split(' ').slice(-1)[0];
+
+  var h = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:12px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.04em">📊 LIVE ROUND STATS</span>';
+  h += '<button id="rsRefBtn_'+fightIdx+'" style="font-size:10px;padding:2px 8px;border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:5px;cursor:pointer;font-family:\'Barlow\',sans-serif">↻ Refresh</button>';
+  h += '</div>';
+
+  if (!rounds.length) {
+    h += '<div style="font-size:11px;color:var(--text3);padding:4px 0 6px">Round stats not yet available — check back after Round 1 ends.</div>';
+  } else {
+    h += '<div style="display:grid;grid-template-columns:30px 1fr 1fr;gap:6px;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border)">';
+    h += '<div></div><div style="color:var(--blue)">'+aLast+'</div><div style="color:var(--red)">'+bLast+'</div></div>';
+    rounds.forEach(function(rn){
+      var rd = parsed.perRound[rn]||{};
+      function findKey(last){
+        return Object.keys(rd).find(function(k){return k.split(' ').slice(-1)[0].toLowerCase()===last.toLowerCase();})
+            || Object.keys(rd).find(function(k){return k.toLowerCase().includes(last.toLowerCase());});
+      }
+      var as = rd[findKey(aLast)]||{};
+      var bs = rd[findKey(bLast)]||{};
+      function fmt(s){
+        var t='';
+        if(s.sig!==undefined) t+=(s.sig)+(s.sigAtt?'/'+s.sigAtt:'')+' sig';
+        else if(s.total) t+=s.total+' str';
+        if(s.td) t+=(t?', ':'')+s.td+' TD';
+        if(s.kd&&s.kd!=='0') t+=(t?', ':'')+s.kd+' KD';
+        if(s.ctrl) t+=(t?', ':'')+s.ctrl+' ctrl';
+        return t||'—';
+      }
+      h+='<div style="display:grid;grid-template-columns:30px 1fr 1fr;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px">';
+      h+='<div style="font-weight:700;color:var(--gold)">R'+rn+'</div>';
+      h+='<div style="color:var(--text2)">'+fmt(as)+'</div>';
+      h+='<div style="color:var(--text2)">'+fmt(bs)+'</div></div>';
+    });
+  }
+
+  h += '<div style="margin-top:10px">';
+  h += '<button id="roundPredBtn_'+fightIdx+'" style="width:100%;padding:7px 12px;font-size:12px;font-weight:600;border:1px solid rgba(139,92,246,.4);background:rgba(139,92,246,.08);color:#a78bfa;border-radius:7px;cursor:pointer;font-family:\'Barlow\',sans-serif">🔮 Predict Round Winners · ESPN + X.com + AI</button>';
+  h += '</div><div id="roundPredPanel_'+fightIdx+'"></div></div>';
+  return h;
+}
+
+function bindRoundStatsListeners(fightIdx, data, a, b, eid, cid) {
+  var rsRef = document.getElementById('rsRefBtn_'+fightIdx);
+  if (rsRef) rsRef.addEventListener('click', function(){
+    var sec = document.getElementById('roundStatsSection_'+fightIdx);
+    if (sec) showRoundStats(eid, cid, a, b, fightIdx, sec);
+  });
+  var predBtn = document.getElementById('roundPredBtn_'+fightIdx);
+  if (predBtn) predBtn.addEventListener('click', function(){
+    predictRoundWinner(a, b, data, fightIdx);
+  });
+}
+
+// Predict round winners: ESPN stats + X.com search → Claude streaming analysis
+async function predictRoundWinner(a, b, statsData, fightIdx) {
+  var panel = document.getElementById('roundPredPanel_'+fightIdx);
+  var btn   = document.getElementById('roundPredBtn_'+fightIdx);
+  if (!panel) return;
+  if (btn) { btn.disabled=true; btn.textContent='🔮 Analyzing rounds…'; }
+  panel.innerHTML = '<div class="ai-thinking" style="padding:8px 0">Searching X.com and building analysis <span>…</span></div>';
+
+  // Fetch X.com commentary via search proxy
+  var xSnippets = [];
+  try {
+    var xq = a.name.split(' ').slice(-1)[0]+' '+b.name.split(' ').slice(-1)[0]+' UFC round';
+    var xr = await fetch('/api/xsearch?q='+encodeURIComponent(xq)+'&_='+Date.now());
+    if (xr.ok) { var xd = await xr.json(); xSnippets = xd.snippets||[]; }
+  } catch(e){}
+
+  // Build round summary text from ESPN stats
+  var parsed = parseCompStats(statsData);
+  var aLast = a.name.split(' ').slice(-1)[0];
+  var bLast = b.name.split(' ').slice(-1)[0];
+  var rounds = Object.keys(parsed.perRound).map(Number).sort(function(x,y){return x-y;});
+  var roundTxt = '';
+  rounds.forEach(function(rn){
+    var rd = parsed.perRound[rn]||{};
+    function fk(last){ return Object.keys(rd).find(function(k){return k.toLowerCase().includes(last.toLowerCase());});}
+    var as=rd[fk(aLast)]||{}, bs=rd[fk(bLast)]||{};
+    roundTxt += 'Round '+rn+': '+aLast+' — '+(as.sig||'?')+(as.sigAtt?'/'+as.sigAtt:'')+' sig str, '+(as.td||0)+' TD, '+(as.kd||0)+' KD, ctrl '+(as.ctrl||'0:00')+'. ';
+    roundTxt += bLast+' — '+(bs.sig||'?')+(bs.sigAtt?'/'+bs.sigAtt:'')+' sig str, '+(bs.td||0)+' TD, '+(bs.kd||0)+' KD, ctrl '+(bs.ctrl||'0:00')+'.\n';
+  });
+  if (!roundTxt) roundTxt = 'No round stats available from ESPN yet.';
+
+  var xTxt = xSnippets.length
+    ? 'X.com fan commentary:\n'+xSnippets.slice(0,5).map(function(s,i){return (i+1)+'. '+s;}).join('\n')
+    : 'X.com commentary: not available.';
+
+  var prompt = 'You are a UFC scorecard expert scoring live rounds using 10-9 MMA judging.\n\n'
+    +'Fight: '+a.name+' vs '+b.name+'\n\n'
+    +'ESPN Live Round Stats:\n'+roundTxt+'\n'
+    +xTxt+'\n\n'
+    +'Career stats context: '+a.name+'=slpm '+a.slpm+', sacc '+a.sacc+'%, style '+a.style+'. '+b.name+'=slpm '+b.slpm+', sacc '+b.sacc+'%, style '+b.style+'\n\n'
+    +'For each completed round give: winner (10-9 or 10-8 if dominant) and one-sentence reason. '
+    +'End with: current fight momentum and who you favor going forward. Under 180 words total. Be direct.';
+
+  getApiKey(async function(apiKey){
+    if (!apiKey) {
+      if (btn) { btn.disabled=false; btn.textContent='🔮 Predict Round Winners · ESPN + X.com + AI'; }
+      panel.innerHTML=''; return;
+    }
+    panel.innerHTML='<div class="ai-thinking" style="padding:8px 0">Generating prediction <span>…</span></div>';
+    try {
+      var res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,stream:true,messages:[{role:'user',content:prompt}]})
+      });
+      if (!res.ok) { var e=await res.json(); throw new Error((e.error&&e.error.message)||'HTTP '+res.status); }
+      panel.innerHTML='<div style="margin-top:8px;padding:10px 12px;background:var(--bg4);border:1px solid rgba(139,92,246,.25);border-radius:8px">'
+        +'<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#a78bfa;margin-bottom:6px">🔮 ROUND PREDICTIONS · ESPN + X.com</div>'
+        +'<div class="ai-content" id="roundAiTxt_'+fightIdx+'"></div></div>';
+      var ct=document.getElementById('roundAiTxt_'+fightIdx);
+      var reader=res.body.getReader(),dec=new TextDecoder(),buf='',full='';
+      while(true){
+        var rd=await reader.read(); if(rd.done)break;
+        buf+=dec.decode(rd.value,{stream:true});
+        var lines=buf.split('\n');buf=lines.pop();
+        for(var li=0;li<lines.length;li++){
+          var ln=lines[li];if(!ln.startsWith('data: '))continue;
+          var dd=ln.slice(6).trim();if(dd==='[DONE]')continue;
+          try{var ev=JSON.parse(dd);if(ev.type==='content_block_delta'&&ev.delta&&ev.delta.type==='text_delta'){full+=ev.delta.text;ct.innerHTML=full.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')+'<span style="opacity:.5">▋</span>';}}catch(ex){}
+        }
+      }
+      ct.innerHTML=full.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+      if(btn){btn.disabled=false;btn.textContent='🔮 Regenerate Prediction';}
+    } catch(err){
+      var is401=err.message.includes('401')||err.message.toLowerCase().includes('auth');
+      if(is401)sessionStorage.removeItem('ufc_ak');
+      panel.innerHTML='<div style="color:var(--red);font-size:11px;padding:6px">'+err.message+(is401?' — key cleared, click again':'')+'</div>';
+      if(btn){btn.disabled=false;btn.textContent='🔮 Predict Round Winners · ESPN + X.com + AI';}
+    }
+  });
 }
 
 // ── LOAD FIGHT ──────────────────────────────────────
@@ -1225,17 +1446,26 @@ function buildLiveListFromESPN(d){
         : '<div class="fr-pct-label" style="font-size:10px;color:var(--text3)">'+detail+'</div>')
       +'</div>';
 
-    if(hasFightData){
-      (function(fi, aEspnId, bEspnId){
-        div.addEventListener('click', function(){
-          document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
-          div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
-          var lc = document.getElementById('liveContent');
-          if(lc) lc.scrollIntoView({behavior:'smooth', block:'start'});
-          loadFightWithLiveStats(fi, 'liveContent', aEspnId, bEspnId);
-        });
-      })(fightIdx, (compA.athlete&&compA.athlete.id)||null, (compB.athlete&&compB.athlete.id)||null);
-    }
+    // Always attach click — even if fightIdx<0 (no FIGHTS match) show a status card
+    (function(fi, espnEid, espnCid, aEspnId, bEspnId, fNameA, fNameB, fDetail){
+      div.addEventListener('click', function(){
+        document.querySelectorAll('.fight-row').forEach(function(r){r.style.borderColor='';r.style.background='';});
+        div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
+        var lc = document.getElementById('liveContent');
+        if(lc) lc.scrollIntoView({behavior:'smooth', block:'start'});
+        if(fi >= 0){
+          loadFightWithLiveStats(fi, 'liveContent', aEspnId, bEspnId, espnEid, espnCid);
+        } else {
+          var lcc = document.getElementById('liveContent');
+          if(lcc) lcc.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">'
+            +'<div style="font-size:18px;margin-bottom:8px">📋</div>'
+            +'<div style="color:var(--text2);font-weight:600">'+fNameA+' vs '+fNameB+'</div>'
+            +'<div style="font-size:11px;margin-top:4px">'+fDetail+'</div>'
+            +'<div style="font-size:10px;margin-top:8px;color:var(--text4)">No detailed stats — fight not in local card data</div>'
+            +'</div>';
+        }
+      });
+    })(fightIdx, event.id, comp.id, (compA.athlete&&compA.athlete.id)||null, (compB.athlete&&compB.athlete.id)||null, aName, bName, detail);
 
     if(ci < mainCount) mainEl.appendChild(div);
     else preEl.appendChild(div);
@@ -1282,10 +1512,15 @@ function buildLiveListFromFIGHTS(){
         div.style.borderColor='var(--blue)'; div.style.background='var(--bg4)';
         var lc = document.getElementById('liveContent');
         if(lc) lc.scrollIntoView({behavior:'smooth', block:'start'});
-        // Use ESPN athlete IDs if available for live stats
         var aId = fight.a.espnAthleteId || null;
         var bId = fight.b.espnAthleteId || null;
-        loadFightWithLiveStats(fi, 'liveContent', aId, bId);
+        // Look up ESPN competition + athlete IDs from cached scoreboard
+        var espnComp = lookupEspnComp(fight.a.name, fight.b.name);
+        if (espnComp) {
+          if (!aId) aId = espnComp.aAthleteId;
+          if (!bId) bId = espnComp.bAthleteId;
+        }
+        loadFightWithLiveStats(fi, 'liveContent', aId, bId, espnComp ? espnComp.eid : null, espnComp ? espnComp.cid : null);
       });
     })(i, f);
     return div;

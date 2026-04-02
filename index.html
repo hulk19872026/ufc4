@@ -1043,12 +1043,25 @@ function scrollToContent(el) {
   }, 30);
 }
 
+// ── NAME MATCHING ──────────────────────────────────
+// Robust name match: handles accents, compound last names (e.g. "de Oliveira" vs "Moicano")
+function nmatch(a, b) {
+  function norm(s) {
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
+  }
+  var na = norm(a), nb = norm(b);
+  // Last word exact match (handles most cases)
+  if (na.split(' ').pop() === nb.split(' ').pop()) return true;
+  // Any significant word (>3 chars) shared between names
+  var wa = na.split(' ').filter(function(w){return w.length>3;});
+  var wb = nb.split(' ').filter(function(w){return w.length>3;});
+  return wa.some(function(w){return wb.indexOf(w) >= 0;});
+}
+
 // ── ESPN COMPETITION LOOKUP ────────────────────────
-// Find eid/cid/athleteIds from the cached ESPN scoreboard by fighter last name
+// Find eid/cid/athleteIds from the cached ESPN scoreboard by fighter name
 function lookupEspnComp(aName, bName) {
   if (!_liveESPNData || !_liveESPNData.events || !_liveESPNData.events[0]) return null;
-  var aLow = aName.split(' ').slice(-1)[0].toLowerCase();
-  var bLow = bName.split(' ').slice(-1)[0].toLowerCase();
   var eid = _liveESPNData.events[0].id;
   var comps = _liveESPNData.events[0].competitions || [];
   for (var ci = 0; ci < comps.length; ci++) {
@@ -1057,10 +1070,12 @@ function lookupEspnComp(aName, bName) {
     var cA = cs.find(function(x){return x.order===1;})||cs[0];
     var cB = cs.find(function(x){return x.order===2;})||cs[1];
     if (!cA || !cB) continue;
-    var nA = ((cA.athlete&&cA.athlete.displayName)||'').split(' ').slice(-1)[0].toLowerCase();
-    var nB = ((cB.athlete&&cB.athlete.displayName)||'').split(' ').slice(-1)[0].toLowerCase();
-    if ((nA===aLow&&nB===bLow)||(nA===bLow&&nB===aLow)) {
-      var flip = nA !== aLow;
+    var nA = (cA.athlete&&cA.athlete.displayName)||'';
+    var nB = (cB.athlete&&cB.athlete.displayName)||'';
+    var fwd = nmatch(aName, nA) && nmatch(bName, nB);
+    var rev = nmatch(aName, nB) && nmatch(bName, nA);
+    if (fwd || rev) {
+      var flip = rev && !fwd;
       return {
         eid: eid, cid: comp.id,
         aAthleteId: flip ? (cB.athlete&&cB.athlete.id)||null : (cA.athlete&&cA.athlete.id)||null,
@@ -1069,6 +1084,14 @@ function lookupEspnComp(aName, bName) {
     }
   }
   return null;
+}
+
+// Returns true if the given competition ID is currently in-progress
+function isCompLive(cid) {
+  if (!_liveESPNData || !_liveESPNData.events || !_liveESPNData.events[0]) return false;
+  var comps = _liveESPNData.events[0].competitions || [];
+  var comp = comps.find(function(c){return c.id === cid;});
+  return !!(comp && comp.status && comp.status.type && comp.status.type.state === 'in');
 }
 
 // ── ROUND STATS ────────────────────────────────────
@@ -1081,6 +1104,29 @@ async function showRoundStats(eid, cid, a, b, fightIdx, container) {
     if (data.error) throw new Error(data.error);
     container.innerHTML = buildRoundStatsHtml(data, a, b, fightIdx, eid, cid);
     bindRoundStatsListeners(fightIdx, data, a, b, eid, cid);
+    // Auto-populate Live Round Tracker with ESPN data
+    if (fightIdx >= 0) {
+      applyEspnToRoundTracker(fightIdx, parseCompStats(data), a, b);
+    }
+    // Set up 30s live polling when fight is active
+    if (_roundStatsTimer) { clearInterval(_roundStatsTimer); _roundStatsTimer = null; }
+    if (eid && cid && isCompLive(cid)) {
+      _roundStatsTimer = setInterval(async function(){
+        try {
+          var lr = await fetch('/api/espn?type=competition_stats&eid='+eid+'&cid='+cid+'&_='+Date.now());
+          if (!lr.ok) return;
+          var ld = await lr.json();
+          if (ld.error) return;
+          if (fightIdx >= 0) applyEspnToRoundTracker(fightIdx, parseCompStats(ld), a, b);
+          var sec = document.getElementById('roundStatsSection_'+fightIdx);
+          if (sec) {
+            sec.innerHTML = buildRoundStatsHtml(ld, a, b, fightIdx, eid, cid);
+            bindRoundStatsListeners(fightIdx, ld, a, b, eid, cid);
+          }
+          if (!isCompLive(cid)) { clearInterval(_roundStatsTimer); _roundStatsTimer = null; }
+        } catch(e){}
+      }, 30000);
+    }
   } catch(e) {
     container.innerHTML = ''; // Silently hide — fight detail still works without it
   }
@@ -1178,6 +1224,65 @@ function bindRoundStatsListeners(fightIdx, data, a, b, eid, cid) {
   if (predBtn) predBtn.addEventListener('click', function(){
     predictRoundWinner(a, b, data, fightIdx);
   });
+}
+
+// Auto-populate the Live Round Tracker with ESPN per-round sig-strike data
+function applyEspnToRoundTracker(fightIdx, parsed, a, b) {
+  if (fightIdx < 0 || !parsed || !parsed.perRound) return;
+  var k = getRoundKey(fightIdx);
+  var nRds = fightIdx < 2 ? 5 : 3;
+  initRounds(fightIdx, nRds);
+  var aLast = a.name.split(' ').slice(-1)[0];
+  var bLast = b.name.split(' ').slice(-1)[0];
+  var rounds = Object.keys(parsed.perRound).map(Number).sort(function(x,y){return x-y;});
+  var changed = false;
+  rounds.forEach(function(rn) {
+    var ri = rn - 1;
+    if (ri < 0 || ri >= nRds) return;
+    var rd = parsed.perRound[rn] || {};
+    function findKey(last) {
+      return Object.keys(rd).find(function(kk){return nmatch(kk, last);}) || null;
+    }
+    var aKey = findKey(aLast);
+    var bKey = findKey(bLast);
+    var as = aKey ? rd[aKey] : {};
+    var bs = bKey ? rd[bKey] : {};
+    var aSig = parseInt(as.sig) || 0;
+    var bSig = parseInt(bs.sig) || 0;
+    var aTd = parseInt(as.td) || 0;
+    var bTd = parseInt(bs.td) || 0;
+    var aKd = parseInt(as.kd) || 0;
+    var bKd = parseInt(bs.kd) || 0;
+    // Score: sig strikes + 2pts per TD + 5pts per KD
+    var score = (aSig + aTd*2 + aKd*5) - (bSig + bTd*2 + bKd*5);
+    roundData[k][ri].aStrikes = aSig;
+    roundData[k][ri].bStrikes = bSig;
+    if (score !== 0) roundData[k][ri].winner = score > 0 ? 'a' : 'b';
+    changed = true;
+    // Update strike inputs in DOM
+    var inA = document.getElementById('rA_'+fightIdx+'_'+ri);
+    var inB = document.getElementById('rB_'+fightIdx+'_'+ri);
+    if (inA) inA.value = aSig;
+    if (inB) inB.value = bSig;
+  });
+  if (!changed) return;
+  // Update winner buttons for all rounds
+  for (var i = 0; i < nRds; i++) {
+    var rdi = roundData[k][i];
+    var btA = document.getElementById('rbA_'+fightIdx+'_'+i);
+    var btB = document.getElementById('rbB_'+fightIdx+'_'+i);
+    if (btA) btA.className = 'rnd-btn' + (rdi.winner==='a' ? ' picked-blue' : '');
+    if (btB) btB.className = 'rnd-btn' + (rdi.winner==='b' ? ' picked-red' : '');
+  }
+  updateScorecard(fightIdx, a, b);
+  // Add ESPN LIVE badge to the rounds-title span
+  var rowsEl = document.getElementById('roundRows_'+fightIdx);
+  if (rowsEl) {
+    var titleEl = rowsEl.parentNode && rowsEl.parentNode.querySelector('.rounds-title');
+    if (titleEl && !titleEl.querySelector('.espn-live-badge')) {
+      titleEl.insertAdjacentHTML('beforeend', '<span class="espn-live-badge" style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);margin-left:6px;font-weight:700;letter-spacing:.05em">ESPN LIVE</span>');
+    }
+  }
 }
 
 // Predict round winners: ESPN stats + X.com search → Claude streaming analysis
@@ -1315,6 +1420,7 @@ function loadFight(idx, targetId){
 // Cache key stores event id + date so we re-fetch when the event changes
 var _liveESPNData = null;       // in-memory cache for this session
 var _liveRefreshTimer = null;  // auto-refresh interval when fights are live
+var _roundStatsTimer = null;   // 30s polling for live round stats
 
 function shouldFetchESPN(){
   // Fetch if: Mon or Fri, OR no cache, OR cache is from a different day
@@ -1425,13 +1531,11 @@ function buildLiveListFromESPN(d){
 
     // Try to match to our FIGHTS data for stats
     var fightIdx = FIGHTS.findIndex(function(f){ return f.espnId===comp.id; });
-    // Fallback: match by fighter last name when no espnId is pre-set in FIGHTS
+    // Fallback: robust name matching using nmatch (handles accents, compound names)
     if (fightIdx < 0) {
-      var aLow = aLast.toLowerCase(), bLow = bLast.toLowerCase();
       fightIdx = FIGHTS.findIndex(function(f){
-        var fa = f.a.name.split(' ').slice(-1)[0].toLowerCase();
-        var fb = f.b.name.split(' ').slice(-1)[0].toLowerCase();
-        return (fa===aLow&&fb===bLow)||(fa===bLow&&fb===aLow);
+        return (nmatch(f.a.name, aName) && nmatch(f.b.name, bName))
+            || (nmatch(f.a.name, bName) && nmatch(f.b.name, aName));
       });
     }
     var hasFightData = fightIdx >= 0;

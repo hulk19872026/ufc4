@@ -1,0 +1,21 @@
+# Next.js
+.next/
+out/
+build/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+.vercel
+
+# Old files (replaced by Next.js app)
+# index.html is intentionally kept for reference

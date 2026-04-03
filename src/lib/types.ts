@@ -1,12 +1,13 @@
 // ─── Fighter ──────────────────────────────────────────────────────────────────
 export interface FighterStats {
-  slpm: number;    // sig strikes landed per minute
-  sacc: number;    // striking accuracy %
-  sdef: number;    // striking defense %
-  tdavg: number;   // takedowns per 15 min
-  tdacc: number;   // takedown accuracy %
-  tddef: number;   // takedown defense %
-  subavg: number;  // submission attempts per 15 min
+  slpm: number;         // sig strikes landed per minute
+  sacc: number;         // striking accuracy %
+  sdef: number;         // striking defense %
+  tdavg: number;        // takedowns per 15 min
+  tdacc: number;        // takedown accuracy %
+  tddef: number;        // takedown defense %
+  subavg: number;       // submission attempts per 15 min
+  powerHitsPerMin: number; // sig head/body strikes per min (proxy for power output)
 }
 
 export interface Fighter {
@@ -20,30 +21,30 @@ export interface Fighter {
   losses: number;
   draws: number;
   weightClass: string;
-  height?: string;         // "6'1\""
-  reach?: number;          // in inches
+  height?: string;
+  reach?: number;          // inches
   stance?: string;
   age?: number;
-  dob?: string;
   nationality?: string;
-  hometown?: string;       // for altitude analysis
+  hometown?: string;
   imageUrl?: string;
   stats: FighterStats;
-  // finish breakdown
+  // finish breakdown (wins)
   ko: number;
   sub: number;
   dec: number;
-  // loss methods
+  // first-round finishes
+  firstRoundKOs: number;
+  // loss breakdown
   koLoss: number;
   subLoss: number;
   decLoss: number;
-  // computed
+  // computed / enriched
+  winStreak: number;       // current win streak (0 if on loss)
   avgFightTimeMin?: number;
   recentForm?: string;     // "WWWLW"
-  streak?: string;
   style?: string;
   tier?: 'Elite' | 'Contender' | 'Prospect' | 'Veteran' | 'Gatekeeper';
-  notableWins?: string[];
 }
 
 // ─── Venue ────────────────────────────────────────────────────────────────────
@@ -72,7 +73,7 @@ export interface FightResult {
 export interface Fight {
   id: string;
   eventId: string;
-  order: number;       // fight order on card (0 = main event)
+  order: number;
   isMainEvent: boolean;
   isTitleFight: boolean;
   isCoMainEvent?: boolean;
@@ -91,7 +92,7 @@ export interface UFCEvent {
   id: string;
   name: string;
   shortName?: string;
-  date: string;        // ISO string
+  date: string;
   venue: Venue;
   fights: Fight[];
   status: 'upcoming' | 'live' | 'completed';
@@ -111,15 +112,16 @@ export interface FightAnalysis {
   fighter1Methods: MethodProbability;
   fighter2Methods: MethodProbability;
   predictedWinner: string;
+  predictedWinnerId: string;
   predictedMethod: string;
   predictedRounds: number;
   confidence: number;
   keyFactors: string[];
+  predictionReasons: string[];    // 5 sentences why predicted winner wins
   altitudeNote?: string;
   octagonNote?: string;
   cardioAdvantage?: string;
   styleMatchupNote?: string;
-  aiAnalysis?: string;
 }
 
 // ─── Round Stats ──────────────────────────────────────────────────────────────
@@ -138,8 +140,8 @@ export interface RoundData {
   round: number;
   fighter1: RoundCompetitorStats;
   fighter2: RoundCompetitorStats;
-  roundWinner?: string;  // fighter id
-  roundScore?: string;   // "10-9 Fighter"
+  roundWinner?: string;
+  roundScore?: string;
   source: 'manual' | 'espn';
 }
 
@@ -173,6 +175,27 @@ export interface PredictionRecord {
   accuracy: number;
 }
 
+// ─── DraftKings Odds ──────────────────────────────────────────────────────────
+export interface FightOdds {
+  eventId: string;
+  eventName: string;
+  fighter1Name: string;
+  fighter2Name: string;
+  fighter1Moneyline: number;
+  fighter2Moneyline: number;
+  fighter1Implied: number;
+  fighter2Implied: number;
+  updatedAt: string;
+}
+
+// ─── Notable Wins ─────────────────────────────────────────────────────────────
+export interface NotableWin {
+  opponent: string;
+  method: string;
+  event?: string;
+  year?: string;
+}
+
 // ─── Sentiment ────────────────────────────────────────────────────────────────
 export interface SentimentTweet {
   id: string;
@@ -191,4 +214,5 @@ export interface SentimentSummary {
   totalTweets: number;
   tweets: SentimentTweet[];
   updatedAt: string;
+  isLive: boolean;   // true = real Twitter data, false = mock
 }

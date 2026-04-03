@@ -41,18 +41,20 @@ export default function OddsPanel({ f1Name, f2Name, fightId, f1Prob, f2Prob }: P
       const res = await fetch(`/api/odds?${params}`, { cache: 'no-store' });
       const data = await res.json();
 
-      if (data.source === 'unavailable' || !data.fights?.length) {
+      if (!data.fights?.length) {
         setUnavailable(true);
         setOdds(null);
         setIsEstimated(false);
       } else {
-        // Find the fight that best matches our fighters
+        // Find the fight that best matches our fighters, fall back to first entry
         const f1Last = f1Name.split(' ').slice(-1)[0].toLowerCase();
         const f2Last = f2Name.split(' ').slice(-1)[0].toLowerCase();
-        const match = data.fights.find((o: FightOdds) =>
-          (o.fighter1Name.toLowerCase().includes(f1Last) || o.fighter2Name.toLowerCase().includes(f1Last)) &&
-          (o.fighter1Name.toLowerCase().includes(f2Last) || o.fighter2Name.toLowerCase().includes(f2Last))
-        ) ?? data.fights[0];
+        const match = (data.source === 'estimated')
+          ? data.fights[0]
+          : (data.fights.find((o: FightOdds) =>
+              (o.fighter1Name.toLowerCase().includes(f1Last) || o.fighter2Name.toLowerCase().includes(f1Last)) &&
+              (o.fighter1Name.toLowerCase().includes(f2Last) || o.fighter2Name.toLowerCase().includes(f2Last))
+            ) ?? data.fights[0]);
         setOdds(match);
         setUnavailable(false);
         setIsEstimated(data.source === 'estimated');

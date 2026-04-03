@@ -194,23 +194,29 @@ export async function GET(req: Request) {
       );
     }
 
-    // ── Estimated odds fallback using our calculated win probabilities ──
-    if (f1 && f2 && p1 > 0 && p2 > 0) {
-      const ml1 = probToMoneyline(p1);
-      const ml2 = probToMoneyline(p2);
-      const estimated: FightOdds = {
-        eventId: 'estimated',
-        eventName: `${f1} vs ${f2}`,
-        fighter1Name: f1,
-        fighter2Name: f2,
-        fighter1Moneyline: ml1,
-        fighter2Moneyline: ml2,
-        fighter1Implied: moneylineToImplied(ml1),
-        fighter2Implied: moneylineToImplied(ml2),
-        updatedAt: new Date().toISOString(),
-      };
+    // ── Estimated odds fallback — always show something when we have fighter names ──
+    // Use provided win probabilities, or default to 50/50 if none given
+    if (f1 && f2) {
+      const prob1 = p1 > 0 ? p1 : 50;
+      const prob2 = p2 > 0 ? p2 : 50;
+      const ml1 = probToMoneyline(prob1);
+      const ml2 = probToMoneyline(prob2);
       return NextResponse.json(
-        { fights: [estimated], source: 'estimated', updatedAt: new Date().toISOString() } as OddsResponse,
+        {
+          fights: [{
+            eventId: 'estimated',
+            eventName: `${f1} vs ${f2}`,
+            fighter1Name: f1,
+            fighter2Name: f2,
+            fighter1Moneyline: ml1,
+            fighter2Moneyline: ml2,
+            fighter1Implied: moneylineToImplied(ml1),
+            fighter2Implied: moneylineToImplied(ml2),
+            updatedAt: new Date().toISOString(),
+          }],
+          source: 'estimated',
+          updatedAt: new Date().toISOString(),
+        } as OddsResponse,
         { headers: { 'Cache-Control': 'no-store' } }
       );
     }
@@ -219,10 +225,12 @@ export async function GET(req: Request) {
       { fights: [], source: 'unavailable', updatedAt: new Date().toISOString() } as OddsResponse
     );
   } catch (err: any) {
-    // Even on error, fall back to estimated odds if we have probabilities
-    if (f1 && f2 && p1 > 0 && p2 > 0) {
-      const ml1 = probToMoneyline(p1);
-      const ml2 = probToMoneyline(p2);
+    // On any error, still return estimated odds when we have fighter names
+    if (f1 && f2) {
+      const prob1 = p1 > 0 ? p1 : 50;
+      const prob2 = p2 > 0 ? p2 : 50;
+      const ml1 = probToMoneyline(prob1);
+      const ml2 = probToMoneyline(prob2);
       return NextResponse.json({
         fights: [{
           eventId: 'estimated', eventName: `${f1} vs ${f2}`,

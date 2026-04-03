@@ -86,7 +86,9 @@ function parseScoreboard(data: any): UFCEvent[] {
     };
 
     const fights: Fight[] = [];
-    const comps: any[] = ev.competitions ?? [];
+    // ESPN returns competitions with the main event LAST — reverse so main event = index 0
+    const comps: any[] = [...(ev.competitions ?? [])].reverse();
+    const total = comps.length;
 
     comps.forEach((comp: any, idx: number) => {
       const competitors = comp.competitors ?? [];
@@ -120,6 +122,13 @@ function parseScoreboard(data: any): UFCEvent[] {
       const weightClass = comp.notes?.[0]?.headline ?? comp.name ?? '';
       const isTitle = /title|championship|champion/i.test(weightClass);
       const isMain = idx === 0;
+      const isCoMain = idx === 1;
+
+      // Detect prelim: ESPN sets type.abbreviation or we infer from position
+      const typeAbbr = (comp.type?.abbreviation ?? comp.type?.name ?? '').toLowerCase();
+      const isPrelim = typeAbbr.includes('prelim') || typeAbbr.includes('pre')
+        // Heuristic: bottom 40% of card are prelims when total > 6
+        || (total > 6 && idx >= Math.ceil(total * 0.6));
 
       fights.push({
         id: comp.id ?? `fight-${idx}`,
@@ -127,7 +136,8 @@ function parseScoreboard(data: any): UFCEvent[] {
         order: idx,
         isMainEvent: isMain,
         isTitleFight: isTitle,
-        isCoMainEvent: idx === 1,
+        isCoMainEvent: isCoMain,
+        isPrelim,
         weightClass: cleanWeightClass(weightClass),
         scheduledRounds: isTitle || isMain ? 5 : 3,
         fighter1: f1,
@@ -251,6 +261,60 @@ function parseStatSplits(splits: any): Partial<FighterStats> {
     }
   }
   return out;
+}
+
+// ─── Fetch notable wins from athlete event log ────────────────────────────────
+export async function fetchNotableWins(espnId: string): Promise<{ opponent: string; method: string; event: string; year: string }[]> {
+  try {
+    const res = await fetch(`${BASE_CORE}/athletes/${espnId}/eventlog?limit=25&lang=en&region=us`, {
+      headers: HEADERS,
+      next: { revalidate: 86400 }, // 24 hours
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+
+    const wins: { opponent: string; method: string; event: string; year: string }[] = [];
+    const items: any[] = data?.events?.items ?? data?.items ?? [];
+
+    for (const item of items) {
+      try {
+        // The inline data on each item typically has competition result
+        const competitions = item.competitions ?? item.events ?? [];
+        for (const compItem of competitions) {
+          const comp = compItem.competition ?? compItem;
+          const competitors: any[] = comp.competitors ?? [];
+          if (competitors.length < 2) continue;
+
+          // Find this fighter in competitors
+          const self = competitors.find((c: any) => c.athlete?.id === espnId || c.id === espnId);
+          const opp  = competitors.find((c: any) => c.athlete?.id !== espnId && c.id !== espnId);
+          if (!self || !opp) continue;
+
+          const didWin = self.winner === true || self.homeAway === 'home'
+            ? competitors.find((c: any) => c.winner)?.athlete?.id === espnId
+            : false;
+
+          if (!didWin) continue;
+
+          const method = parseMethod(comp.status?.type?.description ?? comp.notes?.[0]?.headline ?? '');
+          const eventName = item.event?.name ?? comp.eventName ?? '';
+          const dateStr = item.event?.date ?? comp.date ?? '';
+          const year = dateStr ? new Date(dateStr).getFullYear().toString() : '';
+          const opponent = opp.athlete?.displayName ?? opp.displayName ?? 'Unknown';
+
+          wins.push({ opponent, method, event: eventName, year });
+          if (wins.length >= 5) break;
+        }
+      } catch {
+        continue;
+      }
+      if (wins.length >= 5) break;
+    }
+
+    return wins;
+  } catch {
+    return [];
+  }
 }
 
 // ─── Fetch round/competition stats ───────────────────────────────────────────

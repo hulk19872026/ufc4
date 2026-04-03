@@ -91,13 +91,13 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Fight list */}
+          {/* Fight list — sorted: main event first, prelims last */}
           <div className="space-y-2">
             {/* Main card */}
-            {currentEvent.fights.filter((f) => f.order <= 5).length > 0 && (
+            {currentEvent.fights.filter((f) => !f.isPrelim).length > 0 && (
               <>
                 <div className="text-[9px] font-bold tracking-widest uppercase text-amber-400/70 mb-1">Main Card</div>
-                {currentEvent.fights.filter((f) => f.order <= 5).map((fight) => (
+                {currentEvent.fights.filter((f) => !f.isPrelim).map((fight) => (
                   <FightRow
                     key={fight.id}
                     fight={fight}
@@ -108,10 +108,10 @@ export default function HomePage() {
               </>
             )}
             {/* Prelims */}
-            {currentEvent.fights.filter((f) => f.order > 5).length > 0 && (
+            {currentEvent.fights.filter((f) => f.isPrelim).length > 0 && (
               <>
                 <div className="text-[9px] font-bold tracking-widest uppercase text-white/25 mt-4 mb-1">Prelims</div>
-                {currentEvent.fights.filter((f) => f.order > 5).map((fight) => (
+                {currentEvent.fights.filter((f) => f.isPrelim).map((fight) => (
                   <FightRow
                     key={fight.id}
                     fight={fight}

@@ -76,6 +76,7 @@ export interface Fight {
   isMainEvent: boolean;
   isTitleFight: boolean;
   isCoMainEvent?: boolean;
+  isPrelim?: boolean;
   weightClass: string;
   scheduledRounds: number;
   fighter1: Fighter;

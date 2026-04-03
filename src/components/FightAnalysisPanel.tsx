@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Fight, UFCEvent, FightAnalysis } from '@/lib/types';
 import WinProbabilityBar from './WinProbabilityBar';
 import StatRow from './StatRow';
 import RoundTracker from './RoundTracker';
 import PredictionTracker from './PredictionTracker';
 import SentimentPanel from './SentimentPanel';
+import OddsPanel from './OddsPanel';
+
+interface NotableWin { opponent: string; method: string; event: string; year: string; }
 
 interface Props {
   fight: Fight;
@@ -20,6 +23,25 @@ export default function FightAnalysisPanel({ fight, event, analysis }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [aiAnalysis, setAiAnalysis] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [f1Wins, setF1Wins] = useState<NotableWin[]>([]);
+  const [f2Wins, setF2Wins] = useState<NotableWin[]>([]);
+  const [winsLoading, setWinsLoading] = useState(false);
+
+  // Fetch notable wins when overview tab is shown
+  useEffect(() => {
+    if (tab !== 'overview') return;
+    if (f1Wins.length || f2Wins.length || winsLoading) return;
+    setWinsLoading(true);
+    const f1Id = fight.fighter1.espnId;
+    const f2Id = fight.fighter2.espnId;
+    Promise.all([
+      f1Id ? fetch(`/api/notable-wins/${f1Id}`).then(r => r.json()).catch(() => ({ wins: [] })) : Promise.resolve({ wins: [] }),
+      f2Id ? fetch(`/api/notable-wins/${f2Id}`).then(r => r.json()).catch(() => ({ wins: [] })) : Promise.resolve({ wins: [] }),
+    ]).then(([d1, d2]) => {
+      setF1Wins(d1.wins ?? []);
+      setF2Wins(d2.wins ?? []);
+    }).finally(() => setWinsLoading(false));
+  }, [tab, fight.fighter1.espnId, fight.fighter2.espnId, f1Wins.length, f2Wins.length, winsLoading]);
 
   const f1 = fight.fighter1;
   const f2 = fight.fighter2;
@@ -131,6 +153,9 @@ Cover: style matchup, keys to victory for each fighter, and predicted outcome wi
         </div>
       </div>
 
+      {/* DraftKings odds — always visible above tabs */}
+      <OddsPanel f1Name={f1.name} f2Name={f2.name} fightId={fight.id} />
+
       {/* Tabs */}
       <div className="flex gap-1 bg-[#0e0e1a] p-1 rounded-xl border border-white/[0.06]">
         {(['overview', 'stats', 'rounds', 'sentiment'] as Tab[]).map((t) => (
@@ -160,6 +185,60 @@ Cover: style matchup, keys to victory for each fighter, and predicted outcome wi
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Notable wins */}
+          <div className="bg-[#14141f] border border-white/[0.07] rounded-xl p-4">
+            <h3 className="text-[10px] font-bold tracking-widest uppercase text-white/40 mb-3">Notable Wins</h3>
+            {winsLoading && (
+              <div className="grid grid-cols-2 gap-3">
+                {[1,2].map(i => <div key={i} className="space-y-1.5">{[1,2,3].map(j => <div key={j} className="h-8 rounded shimmer"/>)}</div>)}
+              </div>
+            )}
+            {!winsLoading && (
+              <div className="grid grid-cols-2 gap-3">
+                {[{ fighter: f1, wins: f1Wins, color: 'text-blue-400', dot: 'bg-blue-500' },
+                  { fighter: f2, wins: f2Wins, color: 'text-red-400', dot: 'bg-red-500' }].map(({ fighter, wins, color, dot }) => (
+                  <div key={fighter.id}>
+                    <div className={`text-xs font-bold mb-2 font-['Barlow_Condensed',sans-serif] ${color}`}>
+                      {fighter.name.split(' ')[0]}
+                    </div>
+                    {wins.length > 0 ? (
+                      <div className="space-y-2">
+                        {wins.map((w, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full ${dot} mt-1.5 flex-shrink-0`} />
+                            <div>
+                              <div className="text-[11px] text-white/70 font-medium leading-tight">{w.opponent}</div>
+                              <div className="text-[9px] text-white/30 mt-0.5">
+                                {w.method}{w.year ? ` · ${w.year}` : ''}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      /* Fallback: show win record breakdown */
+                      <div className="space-y-1.5">
+                        {[
+                          { label: 'KO/TKO', val: fighter.ko, cls: dot },
+                          { label: 'Submission', val: fighter.sub, cls: dot },
+                          { label: 'Decision', val: fighter.dec, cls: dot },
+                        ].filter(x => x.val > 0).map(({ label, val, cls }) => (
+                          <div key={label} className="flex items-center gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full ${cls} flex-shrink-0`} />
+                            <span className="text-[11px] text-white/50">{val}× {label}</span>
+                          </div>
+                        ))}
+                        {fighter.ko === 0 && fighter.sub === 0 && fighter.dec === 0 && (
+                          <p className="text-[10px] text-white/25 italic">No win data</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Notes */}

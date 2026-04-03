@@ -68,6 +68,7 @@ export async function GET(req: Request) {
       totalTweets: tweets.length,
       tweets: tweets.slice(0, 8),
       updatedAt: new Date().toISOString(),
+      isLive: true,
     };
 
     return NextResponse.json(summary);
@@ -115,5 +116,6 @@ function mockSentiment(f1: string, f2: string): SentimentSummary {
     totalTweets: tweets.length,
     tweets,
     updatedAt: new Date().toISOString(),
+    isLive: false,
   };
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { FightOdds } from '@/lib/types';
 
 // DraftKings public sportsbook API — UFC/MMA moneylines
 // Primary: sportsbook.draftkings.com category endpoint
@@ -12,19 +13,7 @@ const DK_HEADERS = {
   'Referer': 'https://sportsbook.draftkings.com/',
 };
 
-export interface FightOdds {
-  eventId: string;
-  eventName: string;         // "Jon Jones vs Stipe Miocic"
-  fighter1Name: string;
-  fighter2Name: string;
-  fighter1Moneyline: number; // e.g. -250 or +180
-  fighter2Moneyline: number;
-  fighter1Implied: number;   // implied probability %
-  fighter2Implied: number;
-  updatedAt: string;
-}
-
-export interface OddsResponse {
+interface OddsResponse {
   fights: FightOdds[];
   source: 'draftkings' | 'unavailable';
   updatedAt: string;

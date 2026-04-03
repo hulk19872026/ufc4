@@ -69,7 +69,7 @@ export default function SentimentPanel({ f1Name, f2Name, fightId }: Props) {
 
               {/* Tweets */}
               <div className="space-y-2">
-                {data.tweets.map((tweet) => (
+                {(data.tweets ?? []).map((tweet) => (
                   <div
                     key={tweet.id}
                     className={`p-3 rounded-lg border text-xs ${
@@ -104,7 +104,7 @@ export default function SentimentPanel({ f1Name, f2Name, fightId }: Props) {
 
               <p className="text-[9px] text-white/20 mt-3">
                 Updated {new Date(data.updatedAt).toLocaleTimeString()}
-                {!process.env.TWITTER_BEARER_TOKEN && ' · Add TWITTER_BEARER_TOKEN to Vercel env for live data'}
+                {data.isLive === false && ' · Mock data · Add TWITTER_BEARER_TOKEN env var for live posts'}
               </p>
 
               <button

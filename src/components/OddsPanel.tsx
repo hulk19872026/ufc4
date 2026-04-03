@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { FightOdds } from '@/app/api/odds/route';
+import type { FightOdds } from '@/lib/types';
 
 interface Props {
   f1Name: string;

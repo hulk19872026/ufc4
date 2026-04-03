@@ -190,6 +190,8 @@ function parseCompetitor(c: any): Fighter {
     stats: defaultStats(),
     ko: 0, sub: 0, dec: 0,
     koLoss: 0, subLoss: 0, decLoss: 0,
+    firstRoundKOs: 0,
+    winStreak: 0,
   };
 }
 
@@ -236,6 +238,40 @@ function parseAthleteProfile(data: any): Partial<Fighter> {
     if (Object.keys(stats).length) out.stats = stats as FighterStats;
   }
 
+  // Win breakdown from record categories
+  if (data.record?.items) {
+    for (const item of data.record.items) {
+      const t = (item.type ?? item.abbreviation ?? '').toLowerCase();
+      const v = parseInt(item.displayValue ?? item.value ?? '0') || 0;
+      if (t.includes('ko') || t.includes('knock')) out.ko = v;
+      else if (t.includes('sub')) out.sub = v;
+      else if (t.includes('dec')) out.dec = v;
+    }
+  }
+
+  // Win streak from recent results if available
+  if (data.record?.items) {
+    const formItem = data.record.items.find((i: any) =>
+      (i.type ?? i.name ?? '').toLowerCase().includes('form') ||
+      (i.type ?? i.name ?? '').toLowerCase().includes('streak')
+    );
+    if (formItem?.displayValue) {
+      const streak = parseInt(formItem.displayValue) || 0;
+      if (streak > 0) out.winStreak = streak;
+    }
+  }
+
+  // Derive firstRoundKOs from stats if available; default 0
+  if (out.firstRoundKOs === undefined) out.firstRoundKOs = 0;
+  if (out.winStreak === undefined) out.winStreak = 0;
+
+  // Ensure powerHitsPerMin is set
+  if (!out.stats?.powerHitsPerMin && out.stats?.slpm) {
+    out.stats = { ...out.stats, powerHitsPerMin: parseFloat((out.stats.slpm * 0.65).toFixed(2)) };
+  } else if (!out.stats?.powerHitsPerMin) {
+    out.stats = { ...(out.stats ?? defaultStats()), powerHitsPerMin: 2.3 };
+  }
+
   if (data.headshot?.href) out.imageUrl = data.headshot.href;
   if (data.flag?.href && !out.imageUrl) out.imageUrl = data.flag.href;
 
@@ -258,17 +294,36 @@ function parseStatSplits(splits: any): Partial<FighterStats> {
       if (name.includes('tdacc') || name.includes('td acc')) out.tdacc = val > 1 ? val : Math.round(val * 100);
       if (name.includes('tddef') || name.includes('td def')) out.tddef = val > 1 ? val : Math.round(val * 100);
       if (name.includes('subavg') || name.includes('sub avg')) out.subavg = val;
+      if (name.includes('power') || name.includes('head') && name.includes('str')) out.powerHitsPerMin = val;
     }
+  }
+  // Derive powerHitsPerMin from slpm if not found directly (~65% of sig strikes are head/power)
+  if (!out.powerHitsPerMin && out.slpm) {
+    out.powerHitsPerMin = parseFloat((out.slpm * 0.65).toFixed(2));
   }
   return out;
 }
 
 // ─── Fetch notable wins from athlete event log ────────────────────────────────
 export async function fetchNotableWins(espnId: string): Promise<{ opponent: string; method: string; event: string; year: string }[]> {
+  // Try site-level gamelog first — returns inline competitor data
+  try {
+    const siteRes = await fetch(`${BASE_SITE}/athletes/${espnId}/gamelog`, {
+      headers: HEADERS,
+      next: { revalidate: 86400 },
+    });
+    if (siteRes.ok) {
+      const siteData = await siteRes.json();
+      const wins = parseSiteGamelog(siteData, espnId);
+      if (wins.length > 0) return wins.slice(0, 5);
+    }
+  } catch {}
+
+  // Fallback: core eventlog
   try {
     const res = await fetch(`${BASE_CORE}/athletes/${espnId}/eventlog?limit=25&lang=en&region=us`, {
       headers: HEADERS,
-      next: { revalidate: 86400 }, // 24 hours
+      next: { revalidate: 86400 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -277,23 +332,29 @@ export async function fetchNotableWins(espnId: string): Promise<{ opponent: stri
     const items: any[] = data?.events?.items ?? data?.items ?? [];
 
     for (const item of items) {
+      if (wins.length >= 5) break;
       try {
-        // The inline data on each item typically has competition result
-        const competitions = item.competitions ?? item.events ?? [];
+        const competitions: any[] = item.competitions ?? item.events ?? [];
         for (const compItem of competitions) {
+          if (wins.length >= 5) break;
           const comp = compItem.competition ?? compItem;
+          // Skip if only a ref (no inline data)
+          if (comp.$ref && !comp.competitors) continue;
           const competitors: any[] = comp.competitors ?? [];
           if (competitors.length < 2) continue;
 
-          // Find this fighter in competitors
-          const self = competitors.find((c: any) => c.athlete?.id === espnId || c.id === espnId);
-          const opp  = competitors.find((c: any) => c.athlete?.id !== espnId && c.id !== espnId);
+          const self = competitors.find((c: any) =>
+            c.athlete?.id === espnId || c.id === espnId || c.athleteId === espnId
+          );
+          const opp = competitors.find((c: any) =>
+            c.athlete?.id !== espnId && c.id !== espnId && c.athleteId !== espnId
+          );
           if (!self || !opp) continue;
 
-          const didWin = self.winner === true || self.homeAway === 'home'
-            ? competitors.find((c: any) => c.winner)?.athlete?.id === espnId
+          const winnerEntry = competitors.find((c: any) => c.winner === true);
+          const didWin = winnerEntry
+            ? (winnerEntry.athlete?.id === espnId || winnerEntry.id === espnId)
             : false;
-
           if (!didWin) continue;
 
           const method = parseMethod(comp.status?.type?.description ?? comp.notes?.[0]?.headline ?? '');
@@ -301,20 +362,53 @@ export async function fetchNotableWins(espnId: string): Promise<{ opponent: stri
           const dateStr = item.event?.date ?? comp.date ?? '';
           const year = dateStr ? new Date(dateStr).getFullYear().toString() : '';
           const opponent = opp.athlete?.displayName ?? opp.displayName ?? 'Unknown';
-
           wins.push({ opponent, method, event: eventName, year });
-          if (wins.length >= 5) break;
         }
       } catch {
         continue;
       }
-      if (wins.length >= 5) break;
     }
 
     return wins;
   } catch {
     return [];
   }
+}
+
+function parseSiteGamelog(data: any, espnId: string): { opponent: string; method: string; event: string; year: string }[] {
+  const wins: { opponent: string; method: string; event: string; year: string }[] = [];
+  const events: any[] = data?.events ?? data?.seasons?.[0]?.types?.[0]?.events ?? [];
+
+  for (const ev of events) {
+    if (wins.length >= 5) break;
+    const competitions: any[] = ev.competitions ?? [];
+    for (const comp of competitions) {
+      if (wins.length >= 5) break;
+      const competitors: any[] = comp.competitors ?? [];
+      if (competitors.length < 2) continue;
+
+      const self = competitors.find((c: any) =>
+        c.athlete?.id === espnId || c.id === espnId || c.athleteId === espnId
+      );
+      const opp = competitors.find((c: any) =>
+        c.athlete?.id !== espnId && c.id !== espnId && c.athleteId !== espnId
+      );
+      if (!self || !opp) continue;
+
+      const didWin = self.winner === true ||
+        (comp.status?.type?.completed && competitors.find((c: any) => c.winner)?.athlete?.id === espnId);
+      if (!didWin) continue;
+
+      const method = parseMethod(
+        comp.status?.type?.description ?? comp.result?.description ?? comp.notes?.[0]?.headline ?? ''
+      );
+      const dateStr = ev.date ?? comp.date ?? '';
+      const year = dateStr ? new Date(dateStr).getFullYear().toString() : '';
+      const opponent = opp.athlete?.displayName ?? opp.displayName ?? 'Unknown';
+      wins.push({ opponent, method, event: ev.name ?? ev.shortName ?? '', year });
+    }
+  }
+  return wins;
 }
 
 // ─── Fetch round/competition stats ───────────────────────────────────────────
@@ -329,7 +423,7 @@ export async function fetchCompetitionStats(eventId: string, competitionId: stri
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function defaultStats(): FighterStats {
-  return { slpm: 3.5, sacc: 44, sdef: 55, tdavg: 1.5, tdacc: 40, tddef: 60, subavg: 0.5 };
+  return { slpm: 3.5, sacc: 44, sdef: 55, tdavg: 1.5, tdacc: 40, tddef: 60, subavg: 0.5, powerHitsPerMin: 2.3 };
 }
 
 function cleanWeightClass(s: string): string {

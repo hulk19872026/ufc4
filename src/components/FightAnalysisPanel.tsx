@@ -176,6 +176,25 @@ Cover: style matchup, keys to victory for each fighter, and predicted outcome wi
       {/* Tab content */}
       {tab === 'overview' && (
         <div className="space-y-4">
+          {/* Why the predicted winner wins — 5 sentences */}
+          {analysis.predictionReasons?.length > 0 && (
+            <div className="bg-[#14141f] border border-blue-500/20 rounded-xl p-4">
+              <h3 className="text-[10px] font-bold tracking-widest uppercase text-blue-400/70 mb-3">
+                Why {analysis.predictedWinner.split(' ').slice(-1)[0]} Wins
+              </h3>
+              <ol className="space-y-3">
+                {analysis.predictionReasons.map((reason, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-[9px] font-bold text-blue-400 mt-0.5">
+                      {i + 1}
+                    </span>
+                    <p className="text-[11px] text-white/60 leading-relaxed">{reason}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
           {/* Key factors */}
           <div className="bg-[#14141f] border border-white/[0.07] rounded-xl p-4">
             <h3 className="text-[10px] font-bold tracking-widest uppercase text-white/40 mb-3">Key Analysis Factors</h3>
@@ -366,6 +385,8 @@ Cover: style matchup, keys to victory for each fighter, and predicted outcome wi
             <StatRow label="KO Wins" val1={f1.ko} val2={f2.ko} />
             <StatRow label="Sub Wins" val1={f1.sub} val2={f2.sub} />
             <StatRow label="Decision" val1={f1.dec} val2={f2.dec} />
+            <StatRow label="1st Rd KOs" val1={f1.firstRoundKOs ?? 0} val2={f2.firstRoundKOs ?? 0} />
+            <StatRow label="Win Streak" val1={f1.winStreak ?? 0} val2={f2.winStreak ?? 0} />
             <StatRow label="Finish Rate" val1={f1.wins > 0 ? `${Math.round(((f1.ko + f1.sub) / f1.wins) * 100)}%` : '0%'} val2={f2.wins > 0 ? `${Math.round(((f2.ko + f2.sub) / f2.wins) * 100)}%` : '0%'} />
           </div>
 
@@ -373,6 +394,7 @@ Cover: style matchup, keys to victory for each fighter, and predicted outcome wi
           <div>
             <div className="text-[9px] font-bold tracking-widest uppercase text-white/25 mb-2 pb-1 border-b border-white/[0.05]">Striking</div>
             <StatRow label="Sig Str/min" val1={f1.stats.slpm.toFixed(2)} val2={f2.stats.slpm.toFixed(2)} />
+            <StatRow label="Power Hits/min" val1={(f1.stats.powerHitsPerMin ?? 0).toFixed(2)} val2={(f2.stats.powerHitsPerMin ?? 0).toFixed(2)} />
             <StatRow label="Str Accuracy" val1={`${f1.stats.sacc}%`} val2={`${f2.stats.sacc}%`} />
             <StatRow label="Str Defense" val1={`${f1.stats.sdef}%`} val2={`${f2.stats.sdef}%`} />
           </div>

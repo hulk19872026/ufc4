@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { UFCEvent, Fight, FightAnalysis } from '@/lib/types';
 import { analyzeFight } from '@/lib/analysis';
 import WinProbabilityBar from '@/components/WinProbabilityBar';
@@ -11,31 +11,45 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedFight, setSelectedFight] = useState<{ fight: Fight; event: UFCEvent; analysis: FightAnalysis } | null>(null);
-  const [analysisCache, setAnalysisCache] = useState<Record<string, FightAnalysis>>({});
+  // Use a ref for the cache to avoid re-renders while building it
+  const analysisCacheRef = useRef<Record<string, FightAnalysis>>({});
+  const [cacheVersion, setCacheVersion] = useState(0);
 
   useEffect(() => {
     fetch('/api/events')
       .then((r) => r.json())
       .then((d) => {
-        setEvents(d.events ?? []);
-        // Pre-compute analysis for all fights
-        const cache: Record<string, FightAnalysis> = {};
-        for (const ev of d.events ?? []) {
-          for (const fight of ev.fights) {
-            cache[fight.id] = analyzeFight(fight.fighter1, fight.fighter2, ev.venue);
+        const evList: UFCEvent[] = d.events ?? [];
+        setEvents(evList);
+        // Spread computation across idle frames — never block the main thread
+        const pairs = evList.flatMap((ev) => ev.fights.map((f) => ({ fight: f, event: ev })));
+        let i = 0;
+        const step = () => {
+          if (i >= pairs.length) { setCacheVersion((v) => v + 1); return; }
+          const { fight, event } = pairs[i++];
+          analysisCacheRef.current[fight.id] = analyzeFight(fight.fighter1, fight.fighter2, event.venue);
+          // Yield to browser between each fight
+          if (typeof requestIdleCallback !== 'undefined') {
+            requestIdleCallback(step, { timeout: 200 });
+          } else {
+            setTimeout(step, 0);
           }
-        }
-        setAnalysisCache(cache);
+        };
+        step();
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
-  const openFight = (fight: Fight, event: UFCEvent) => {
-    const analysis = analysisCache[fight.id] ?? analyzeFight(fight.fighter1, fight.fighter2, event.venue);
+  const openFight = useCallback((fight: Fight, event: UFCEvent) => {
+    // Compute on demand if not cached yet — single O(1) call, never blocks
+    const analysis =
+      analysisCacheRef.current[fight.id] ??
+      analyzeFight(fight.fighter1, fight.fighter2, event.venue);
+    analysisCacheRef.current[fight.id] = analysis;
     setSelectedFight({ fight, event, analysis });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
 
   if (loading) return <LoadingSkeleton />;
   if (error) return <ErrorCard message={error} />;
@@ -101,7 +115,7 @@ export default function HomePage() {
                   <FightRow
                     key={fight.id}
                     fight={fight}
-                    analysis={analysisCache[fight.id]}
+                    analysis={analysisCacheRef.current[fight.id]}
                     onClick={() => openFight(fight, currentEvent)}
                   />
                 ))}
@@ -115,7 +129,7 @@ export default function HomePage() {
                   <FightRow
                     key={fight.id}
                     fight={fight}
-                    analysis={analysisCache[fight.id]}
+                    analysis={analysisCacheRef.current[fight.id]}
                     onClick={() => openFight(fight, currentEvent)}
                   />
                 ))}

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { loadPredictions, savePrediction, resolvePrediction } from '@/lib/predictions';
-import type { FightAnalysis, Fighter, UFCEvent, Fight, Prediction } from '@/lib/types';
+import type { FightAnalysis, UFCEvent, Fight, Prediction, PredictionRecord } from '@/lib/types';
 
 interface Props {
   fight: Fight;
@@ -11,39 +11,53 @@ interface Props {
 }
 
 export default function PredictionTracker({ fight, event, analysis }: Props) {
-  const [record, setRecord] = useState(loadPredictions());
-  const [resolved, setResolved] = useState(false);
+  const [record, setRecord] = useState<PredictionRecord>(() => loadPredictions());
+  // Guard: save prediction exactly once per fight
+  const savedRef = useRef(false);
 
-  const prediction = record.predictions.find((p) => p.fightId === fight.id);
-  const isResolved = !!prediction?.result;
-
-  // Auto-save prediction when component mounts
   useEffect(() => {
-    if (!prediction) {
-      const winner = analysis.fighter1WinProb >= analysis.fighter2WinProb ? fight.fighter1 : fight.fighter2;
-      const pred: Prediction = {
-        id: `pred_${fight.id}_${Date.now()}`,
-        fightId: fight.id,
-        eventName: event.name,
-        fighter1Name: fight.fighter1.name,
-        fighter2Name: fight.fighter2.name,
-        predictedWinnerId: winner.id,
-        predictedWinnerName: winner.name,
-        predictedMethod: analysis.predictedMethod,
-        confidence: analysis.confidence,
-        fighter1WinProb: analysis.fighter1WinProb,
-        fighter2WinProb: analysis.fighter2WinProb,
-        createdAt: new Date().toISOString(),
-      };
-      savePrediction(pred);
-      setRecord(loadPredictions());
-    }
-  }, [fight.id]);
+    if (savedRef.current) return;
+    savedRef.current = true;
+    // Only save if no prediction exists yet for this fight
+    const existing = record.predictions.find((p) => p.fightId === fight.id);
+    if (existing) return;
+    const winner = analysis.fighter1WinProb >= analysis.fighter2WinProb ? fight.fighter1 : fight.fighter2;
+    const pred: Prediction = {
+      id: `pred_${fight.id}_${Date.now()}`,
+      fightId: fight.id,
+      eventName: event.name,
+      fighter1Name: fight.fighter1.name,
+      fighter2Name: fight.fighter2.name,
+      predictedWinnerId: winner.id,
+      predictedWinnerName: winner.name,
+      predictedMethod: analysis.predictedMethod,
+      confidence: analysis.confidence,
+      fighter1WinProb: analysis.fighter1WinProb,
+      fighter2WinProb: analysis.fighter2WinProb,
+      createdAt: new Date().toISOString(),
+    };
+    savePrediction(pred);
+    // Update state directly — no second localStorage read
+    setRecord((prev) => ({
+      ...prev,
+      predictions: [pred, ...prev.predictions],
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
 
   const handleResult = (winnerId: string, winnerName: string) => {
     resolvePrediction(fight.id, winnerId, winnerName, 'Unknown');
-    setRecord(loadPredictions());
-    setResolved(true);
+    // Update state directly instead of re-reading all localStorage
+    setRecord((prev) => {
+      const preds = prev.predictions.map((p) =>
+        p.fightId === fight.id
+          ? { ...p, result: { actualWinnerId: winnerId, actualWinnerName: winnerName, actualMethod: 'Unknown', correct: p.predictedWinnerId === winnerId, resolvedAt: new Date().toISOString() } }
+          : p
+      );
+      const resolved = preds.filter((p) => p.result);
+      const correct = resolved.filter((p) => p.result?.correct).length;
+      return { predictions: preds, total: resolved.length, correct, accuracy: resolved.length > 0 ? Math.round((correct / resolved.length) * 100) : 0 };
+    });
   };
 
   const { predictions, total, correct, accuracy } = record;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Fight, UFCEvent, FightAnalysis } from '@/lib/types';
 import WinProbabilityBar from './WinProbabilityBar';
 import StatRow from './StatRow';
@@ -26,11 +26,12 @@ export default function FightAnalysisPanel({ fight, event, analysis }: Props) {
   const [f1Wins, setF1Wins] = useState<NotableWin[]>([]);
   const [f2Wins, setF2Wins] = useState<NotableWin[]>([]);
   const [winsLoading, setWinsLoading] = useState(false);
+  // Guard: fetch notable wins exactly once per fight
+  const winsFetchedRef = useRef(false);
 
-  // Fetch notable wins when overview tab is shown
   useEffect(() => {
-    if (tab !== 'overview') return;
-    if (f1Wins.length || f2Wins.length || winsLoading) return;
+    if (winsFetchedRef.current) return;
+    winsFetchedRef.current = true;
     setWinsLoading(true);
     const f1Id = fight.fighter1.espnId;
     const f2Id = fight.fighter2.espnId;
@@ -41,7 +42,8 @@ export default function FightAnalysisPanel({ fight, event, analysis }: Props) {
       setF1Wins(d1.wins ?? []);
       setF2Wins(d2.wins ?? []);
     }).finally(() => setWinsLoading(false));
-  }, [tab, fight.fighter1.espnId, fight.fighter2.espnId, f1Wins.length, f2Wins.length, winsLoading]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount — ref prevents any double-fire
 
   const f1 = fight.fighter1;
   const f2 = fight.fighter2;

@@ -156,7 +156,13 @@ Cover: style matchup, keys to victory for each fighter, and predicted outcome wi
       </div>
 
       {/* DraftKings odds — always visible above tabs */}
-      <OddsPanel f1Name={f1.name} f2Name={f2.name} fightId={fight.id} />
+      <OddsPanel
+        f1Name={f1.name}
+        f2Name={f2.name}
+        fightId={fight.id}
+        f1Prob={analysis.fighter1WinProb}
+        f2Prob={analysis.fighter2WinProb}
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 bg-[#0e0e1a] p-1 rounded-xl border border-white/[0.06]">

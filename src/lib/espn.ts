@@ -306,7 +306,7 @@ function parseStatSplits(splits: any): Partial<FighterStats> {
 
 // ─── Fetch notable wins from athlete event log ────────────────────────────────
 export async function fetchNotableWins(espnId: string): Promise<{ opponent: string; method: string; event: string; year: string }[]> {
-  // Try site-level gamelog first — returns inline competitor data
+  // Try site-level gamelog first — sometimes returns inline competitor data
   try {
     const siteRes = await fetch(`${BASE_SITE}/athletes/${espnId}/gamelog`, {
       headers: HEADERS,
@@ -319,7 +319,7 @@ export async function fetchNotableWins(espnId: string): Promise<{ opponent: stri
     }
   } catch {}
 
-  // Fallback: core eventlog
+  // Fallback: core eventlog with ref-following
   try {
     const res = await fetch(`${BASE_CORE}/athletes/${espnId}/eventlog?limit=25&lang=en&region=us`, {
       headers: HEADERS,
@@ -328,45 +328,94 @@ export async function fetchNotableWins(espnId: string): Promise<{ opponent: stri
     if (!res.ok) return [];
     const data = await res.json();
 
-    const wins: { opponent: string; method: string; event: string; year: string }[] = [];
     const items: any[] = data?.events?.items ?? data?.items ?? [];
 
+    // Collect competition refs/inline data from items
+    const compSources: Array<{ compData?: any; compRef?: string; eventName: string; date: string }> = [];
     for (const item of items) {
-      if (wins.length >= 5) break;
-      try {
-        const competitions: any[] = item.competitions ?? item.events ?? [];
-        for (const compItem of competitions) {
-          if (wins.length >= 5) break;
-          const comp = compItem.competition ?? compItem;
-          // Skip if only a ref (no inline data)
-          if (comp.$ref && !comp.competitors) continue;
-          const competitors: any[] = comp.competitors ?? [];
-          if (competitors.length < 2) continue;
+      if (compSources.length >= 10) break;
+      const eventName = item.event?.name ?? item.name ?? '';
+      const date = item.event?.date ?? item.date ?? '';
+      const competitions: any[] = item.competitions ?? [];
 
-          const self = competitors.find((c: any) =>
-            c.athlete?.id === espnId || c.id === espnId || c.athleteId === espnId
-          );
-          const opp = competitors.find((c: any) =>
-            c.athlete?.id !== espnId && c.id !== espnId && c.athleteId !== espnId
-          );
-          if (!self || !opp) continue;
-
-          const winnerEntry = competitors.find((c: any) => c.winner === true);
-          const didWin = winnerEntry
-            ? (winnerEntry.athlete?.id === espnId || winnerEntry.id === espnId)
-            : false;
-          if (!didWin) continue;
-
-          const method = parseMethod(comp.status?.type?.description ?? comp.notes?.[0]?.headline ?? '');
-          const eventName = item.event?.name ?? comp.eventName ?? '';
-          const dateStr = item.event?.date ?? comp.date ?? '';
-          const year = dateStr ? new Date(dateStr).getFullYear().toString() : '';
-          const opponent = opp.athlete?.displayName ?? opp.displayName ?? 'Unknown';
-          wins.push({ opponent, method, event: eventName, year });
+      for (const compItem of competitions) {
+        const comp = compItem.competition ?? compItem;
+        if (comp.$ref && !comp.competitors) {
+          // ESPN returned a ref — collect it for batch fetch
+          compSources.push({ compRef: comp.$ref, eventName, date });
+        } else if (comp.competitors?.length >= 2) {
+          compSources.push({ compData: comp, eventName, date });
         }
-      } catch {
-        continue;
       }
+    }
+
+    // Batch-fetch the refs (max 8 concurrent)
+    const refSources = compSources.filter(s => s.compRef);
+    const inlineSources = compSources.filter(s => s.compData);
+
+    const fetchedComps = await Promise.all(
+      refSources.slice(0, 8).map(async (s) => {
+        try {
+          const r = await fetch(s.compRef!, { headers: HEADERS, next: { revalidate: 86400 } });
+          if (!r.ok) return null;
+          const d = await r.json();
+          return { compData: d, eventName: s.eventName, date: s.date };
+        } catch { return null; }
+      })
+    );
+
+    const allComps = [
+      ...inlineSources,
+      ...fetchedComps.filter(Boolean) as Array<{ compData: any; eventName: string; date: string }>,
+    ];
+
+    const wins: { opponent: string; method: string; event: string; year: string }[] = [];
+
+    for (const { compData: comp, eventName, date } of allComps) {
+      if (wins.length >= 5) break;
+      const competitors: any[] = comp.competitors ?? [];
+      if (competitors.length < 2) continue;
+
+      // Identify self and opponent — may need to resolve athlete refs
+      const self = competitors.find((c: any) =>
+        c.athlete?.id === espnId || c.id === espnId ||
+        String(c.athlete?.$ref ?? '').includes(`/athletes/${espnId}`)
+      );
+      const opp = competitors.find((c: any) =>
+        c.athlete?.id !== espnId && c.id !== espnId &&
+        !String(c.athlete?.$ref ?? '').includes(`/athletes/${espnId}`)
+      );
+      if (!self || !opp) continue;
+
+      const winnerEntry = competitors.find((c: any) => c.winner === true);
+      if (!winnerEntry) continue;
+      const didWin =
+        winnerEntry.athlete?.id === espnId ||
+        winnerEntry.id === espnId ||
+        String(winnerEntry.athlete?.$ref ?? '').includes(`/athletes/${espnId}`);
+      if (!didWin) continue;
+
+      const method = parseMethod(
+        comp.status?.type?.description ?? comp.notes?.[0]?.headline ?? ''
+      );
+      const dateStr = comp.date ?? date;
+      const year = dateStr ? new Date(dateStr).getFullYear().toString() : '';
+
+      // Get opponent name — inline or from ref URL (parse ID from URL and use display name if available)
+      let oppName = opp.athlete?.displayName ?? opp.displayName ?? '';
+      if (!oppName && opp.athlete?.$ref) {
+        // Try to fetch the athlete ref
+        try {
+          const ar = await fetch(opp.athlete.$ref, { headers: HEADERS, next: { revalidate: 86400 } });
+          if (ar.ok) {
+            const ad = await ar.json();
+            oppName = ad.displayName ?? ad.fullName ?? '';
+          }
+        } catch {}
+      }
+
+      if (!oppName) continue; // skip if we still can't get a name
+      wins.push({ opponent: oppName, method, event: eventName, year });
     }
 
     return wins;
